@@ -15,10 +15,24 @@ namespace Tests.Patients
                     "Ana",
                     "López",
                     DateTime.Today.AddDays(1),
-                    "9991234567",
-                    "MRN-001"
+                    "9991234567"
                 )
             );
+        }
+
+        [Fact]
+        public void Should_identify_minor_patient()
+        {
+            var patient = new Patient(
+                "Juan",
+                "Pérez",
+                DateTime.Today.AddYears(-10),
+                "9999876543"
+            );
+
+            var isMinor = patient.IsMinor();
+
+            Assert.True(isMinor);
         }
 
         [Fact]
@@ -29,7 +43,6 @@ namespace Tests.Patients
                 "Gómez",
                 new DateTime(1990, 5, 20),
                 "9995554433",
-                "MRN-003",
                 "carlos@email.com"
             );
 

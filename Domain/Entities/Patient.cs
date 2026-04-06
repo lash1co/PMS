@@ -12,10 +12,15 @@ namespace Domain.Entities
 
         public string Phone { get; private set; } = null!;
         public string? Email { get; private set; }
-        public string MedicalRecordNumber { get; private set; } = null!;
+        // public string MedicalRecordNumber { get; private set; } = null!;
 
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
+        public ICollection<MedicalRecord>? MedicalRecords { get; set; }
+
+        public ICollection<Prescriptions>? Prescriptions { get; set; }
+
+        public ICollection<Appointment>? Appointments { get; set; }
         private readonly List<Invoice> _invoices = new();
         public IReadOnlyCollection<Invoice> Invoices => _invoices.AsReadOnly();
 
@@ -26,7 +31,7 @@ namespace Domain.Entities
             string lastName,
             DateTime dateOfBirth,
             string phone,
-            string medicalRecordNumber,
+            //string medicalRecordNumber,
             string? email = null)
         {
             if (dateOfBirth > DateTime.Today)
@@ -38,14 +43,14 @@ namespace Domain.Entities
             if (string.IsNullOrWhiteSpace(lastName))
                 throw new DomainException("Last name is required");
 
-            if (string.IsNullOrWhiteSpace(medicalRecordNumber))
-                throw new DomainException("Medical Record Number is required");
+            /*if (string.IsNullOrWhiteSpace(medicalRecordNumber))
+                throw new DomainException("Medical Record Number is required");*/
 
             FirstName = firstName;
             LastName = lastName;
             DateOfBirth = dateOfBirth;
             Phone = phone;
-            MedicalRecordNumber = medicalRecordNumber;
+            //MedicalRecordNumber = medicalRecordNumber;
             Email = email;
         }
 
