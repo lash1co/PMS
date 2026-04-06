@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WebServices.DataAccess
 {
+    /// <summary>
+    /// Data base context definiton
+    /// </summary>
     public class DatabaseContext : DbContext
     {
         public DatabaseContext(DbContextOptions<DatabaseContext> options)
