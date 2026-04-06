@@ -21,6 +21,8 @@ namespace Domain.Entities
         public ICollection<Prescriptions>? Prescriptions { get; set; }
 
         public ICollection<Appointment>? Appointments { get; set; }
+        private readonly List<Invoice> _invoices = new();
+        public IReadOnlyCollection<Invoice> Invoices => _invoices.AsReadOnly();
 
         private Patient() { }
 
@@ -52,9 +54,11 @@ namespace Domain.Entities
             Email = email;
         }
 
-        public bool IsMinor()
+        public Invoice CreateInvoice(decimal amount, DateTime dueDate)
         {
-            return DateOfBirth.AddYears(18) > DateTime.Today;
+            var invoice = new Invoice(this.Id, amount, dueDate);
+            _invoices.Add(invoice);
+            return invoice;
         }
     }
 

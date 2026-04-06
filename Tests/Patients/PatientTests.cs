@@ -47,7 +47,6 @@ namespace Tests.Patients
             );
 
             Assert.NotNull(patient);
-            Assert.False(patient.IsMinor());
         }
     }
 }
