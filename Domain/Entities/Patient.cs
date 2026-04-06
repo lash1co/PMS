@@ -31,7 +31,6 @@ namespace Domain.Entities
             string lastName,
             DateTime dateOfBirth,
             string phone,
-            //string medicalRecordNumber,
             string? email = null)
         {
             if (dateOfBirth > DateTime.Today)
@@ -43,14 +42,10 @@ namespace Domain.Entities
             if (string.IsNullOrWhiteSpace(lastName))
                 throw new DomainException("Last name is required");
 
-            /*if (string.IsNullOrWhiteSpace(medicalRecordNumber))
-                throw new DomainException("Medical Record Number is required");*/
-
             FirstName = firstName;
             LastName = lastName;
             DateOfBirth = dateOfBirth;
             Phone = phone;
-            //MedicalRecordNumber = medicalRecordNumber;
             Email = email;
         }
 

@@ -9,7 +9,6 @@ namespace Domain.Entities
     {
         public int Id { get; private set; }
 
-        public int PatientId { get; private set; }
         public Patient Patient { get; private set; } = null!;
 
         public decimal Amount { get; private set; }
@@ -33,7 +32,6 @@ namespace Domain.Entities
             if (dueDate <= DateTime.Today)
                 throw new DomainException("Due date must be in the future.");
 
-            PatientId = patientId;
             Amount = amount;
             PaidAmount = 0;
             Status = InvoiceStatus.Pending;

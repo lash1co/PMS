@@ -17,6 +17,8 @@ namespace WebServices.DataAccess
 
         public DbSet<Doctor> DBDoctors { get; set; }
 
+        public DbSet<Invoice> DBInvoices { get; set; }
+
         public DbSet<MedicalRecord> DBMedicalRecords { get; set; }
 
         public DbSet<Appointment> DBAppointments { get; set; }
@@ -45,6 +47,17 @@ namespace WebServices.DataAccess
             modelBuilder.Entity<Doctor>()
                 .Property(d => d.Id)
                 .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Invoice>()
+                .HasKey(i => i.Id);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Patient)
+                .WithMany(p => p.Invoices);
 
             modelBuilder.Entity<Appointment>()
                 .HasKey(ap => ap.Id);
