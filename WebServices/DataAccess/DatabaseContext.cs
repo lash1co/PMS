@@ -5,6 +5,11 @@ namespace WebServices.DataAccess
 {
     public class DatabaseContext : DbContext
     {
+        public DatabaseContext(DbContextOptions<DatabaseContext> options)
+        : base(options)
+        {
+        }
+
         public DbSet<Patient> DBPatients { get; set; }
 
         public DbSet<Doctor> DBDoctors { get; set; }
