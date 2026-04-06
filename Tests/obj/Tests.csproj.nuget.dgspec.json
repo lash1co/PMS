@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Tests\\Tests.csproj": {}
+    "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Tests\\Tests.csproj": {}
   },
   "projects": {
-    "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Domain\\Domain.csproj": {
+    "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Domain\\Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Domain\\Domain.csproj",
+        "projectUniqueName": "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Domain\\Domain.csproj",
         "projectName": "Domain",
-        "projectPath": "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Domain\\Domain.csproj",
-        "packagesPath": "C:\\Users\\cesar.gonzalez\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Domain\\obj\\",
+        "projectPath": "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Domain\\Domain.csproj",
+        "packagesPath": "C:\\Users\\marco.arce\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\cesar.gonzalez\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\marco.arce\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -50,6 +49,18 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[10.0.5, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.0.5, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -344,20 +355,20 @@
         }
       }
     },
-    "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Tests\\Tests.csproj": {
+    "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Tests\\Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Tests\\Tests.csproj",
+        "projectUniqueName": "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Tests\\Tests.csproj",
         "projectName": "Tests",
-        "projectPath": "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Tests\\Tests.csproj",
-        "packagesPath": "C:\\Users\\cesar.gonzalez\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Tests\\obj\\",
+        "projectPath": "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Tests\\Tests.csproj",
+        "packagesPath": "C:\\Users\\marco.arce\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Tests\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\cesar.gonzalez\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\marco.arce\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -366,15 +377,14 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Domain\\Domain.csproj": {
-                "projectPath": "C:\\Users\\cesar.gonzalez\\source\\repos\\PMS\\Domain\\Domain.csproj"
+              "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Domain\\Domain.csproj": {
+                "projectPath": "C:\\Users\\marco.arce\\source\\repos\\PMS training project\\PMS\\Domain\\Domain.csproj"
               }
             }
           }
