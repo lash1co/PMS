@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Authentication/Authentication.csproj" Id="0e4da82f-ecf3-488c-b276-c11c87a3a969" />
   <Project Path="Domain/Domain.csproj" />
   <Project Path="Tests/Tests.csproj" />
   <Project Path="WebServices/WebServices.csproj" Id="445f00ae-a26e-4a48-ac30-768f5c0dc105" />
