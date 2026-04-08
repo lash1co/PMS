@@ -48,5 +48,54 @@ namespace Tests.Patients
 
             Assert.NotNull(patient);
         }
+
+        [Fact]
+        public void Should_update_patient_details_with_valid_data()
+        {
+            var patient = new Patient(
+                "Juan",
+                "Pérez",
+                new DateTime(1990, 5, 20),
+                "9995554433",
+                "juan@email.com"
+            );
+
+            patient.UpdateDetails(
+                "Carlos",
+                "Gómez",
+                new DateTime(1992, 8, 15),
+                "9811234567",
+                "carlos@email.com"
+            );
+
+            Assert.Equal("Carlos", patient.FirstName);
+            Assert.Equal("Gómez", patient.LastName);
+            Assert.Equal(new DateTime(1992, 8, 15), patient.DateOfBirth);
+            Assert.Equal("9811234567", patient.Phone);
+            Assert.Equal("carlos@email.com", patient.Email);
+        }
+
+        [Fact]
+        public void Should_not_allow_update_with_future_birth_date()
+        {
+            // Arrange
+            var patient = new Patient(
+                "Juan",
+                "Pérez",
+                new DateTime(1990, 5, 20),
+                "9995554433",
+                "juan@email.com"
+            );
+
+            Assert.Throws<DomainException>(() =>
+                patient.UpdateDetails(
+                    "Juan",
+                    "Pérez",
+                    DateTime.Today.AddDays(1), // Fecha inválida
+                    "9995554433",
+                    "juan@email.com"
+                )
+            );
+        }
     }
 }
