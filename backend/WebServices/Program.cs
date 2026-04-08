@@ -9,6 +9,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// Configuring CORS to allow requests from Angular frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -44,9 +58,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+// Commenting out HTTPS redirections to allow temporary HTTP access for Angular testing. This should be removed in production for security reasons.
 
 app.UseRouting();
+
+// Enabling CORS for Angular frontend
+app.UseCors("AllowAngular");
 
 app.UseAuthentication();
 app.UseAuthorization();

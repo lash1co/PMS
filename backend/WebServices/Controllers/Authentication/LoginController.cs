@@ -20,12 +20,21 @@ namespace WebServices.Controllers.Authentication
         [HttpPost]
         public IActionResult Login([FromBody] LoginCreadentials loginCreadentials)
         {
-            IActionResult response = Unauthorized();
-            var tokenProcess = AuthenticationProcess.Authenticate(loginCreadentials, _config["Jwt:Key"], _config["Jwt:Issuer"]);
+            /// implementation with try-catch for error handling
+            try
+            {
+                var token = AuthenticationProcess.Authenticate(
+                loginCreadentials,
+                _config["Jwt:Key"],
+                _config["Jwt:Issuer"]
+                );
 
-            response = Ok(tokenProcess);
-
-            return response;
+                return Ok(new { token });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
         }
     }
 }
