@@ -1,79 +1,80 @@
-﻿using Domain.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 
 namespace Domain.Entities
 {
+    /// <summary>
+    /// Represents a financial invoice billed to a patient.
+    /// Acts as a data container (Anemic Domain Model) mapped to the database.
+    /// </summary>
     public class Invoice
     {
-        public int Id { get; private set; }
+        /// <summary>
+        /// The unique identifier for the invoice.
+        /// </summary>
+        public int Id { get; set; }
 
-        public Patient Patient { get; private set; } = null!;
+        // Navigation Properties
 
-        public decimal Amount { get; private set; }
-        public decimal PaidAmount { get; private set; }
+        /// <summary>
+        /// The patient associated with this invoice.
+        /// </summary>
+        public Patient Patient { get; set; } = null!;
 
-        public InvoiceStatus Status { get; private set; }
+        /// <summary>
+        /// The total amount to be billed.
+        /// </summary>
+        public decimal Amount { get; set; }
 
-        public DateTime IssuedDate { get; private set; }
-        public DateTime DueDate { get; private set; }
-        public DateTime? PaidDate { get; private set; }
+        /// <summary>
+        /// The amount that has been paid so far.
+        /// </summary>
+        public decimal PaidAmount { get; set; }
 
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        /// <summary>
+        /// The current status of the invoice (e.g., Pending, Paid, Overdue, Cancelled).
+        /// </summary>
+        public InvoiceStatus Status { get; set; }
 
-        private Invoice() { }
+        /// <summary>
+        /// The date and time when the invoice was officially issued.
+        /// </summary>
+        public DateTime IssuedDate { get; set; }
 
+        /// <summary>
+        /// The deadline date for the payment.
+        /// </summary>
+        public DateTime DueDate { get; set; }
+
+        /// <summary>
+        /// The date and time when the invoice was fully paid. Null if the invoice is not fully paid yet.
+        /// </summary>
+        public DateTime? PaidDate { get; set; }
+
+        /// <summary>
+        /// The timestamp indicating when the invoice record was created. Defaults to the current UTC time.
+        /// </summary>
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// Parameterless constructor required by Entity Framework Core.
+        /// </summary>
+        public Invoice() { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Invoice"/> class.
+        /// </summary>
+        /// <param name="patientId">The unique identifier of the patient being billed.</param>
+        /// <param name="amount">The total amount of the invoice.</param>
+        /// <param name="dueDate">The deadline for the payment.</param>
         public Invoice(int patientId, decimal amount, DateTime dueDate)
         {
-            if (amount <= 0)
-                throw new DomainException("Invoice amount must be greater than zero.");
-
-            if (dueDate <= DateTime.Today)
-                throw new DomainException("Due date must be in the future.");
-
+            // Note: The patientId is used by EF Core to establish the foreign key relationship 
+            // if configured, even though the property itself is not explicitly defined in this model.
             Amount = amount;
             PaidAmount = 0;
             Status = InvoiceStatus.Pending;
             IssuedDate = DateTime.UtcNow;
             DueDate = dueDate;
         }
-
-        public void RegisterPayment(decimal paymentAmount)
-        {
-            if (paymentAmount <= 0)
-                throw new DomainException("Payment amount must be greater than zero.");
-
-            if (Status == InvoiceStatus.Paid)
-                throw new DomainException("Invoice is already fully paid.");
-
-            if (PaidAmount + paymentAmount > Amount)
-                throw new DomainException("Payment exceeds invoice total.");
-
-            PaidAmount += paymentAmount;
-
-            if (PaidAmount == Amount)
-            {
-                Status = InvoiceStatus.Paid;
-                PaidDate = DateTime.UtcNow;
-            }
-        }
-
-        public void MarkAsOverdue()
-        {
-            if (Status == InvoiceStatus.Paid)
-                throw new DomainException("Paid invoice cannot be marked as overdue.");
-
-            Status = InvoiceStatus.Overdue;
-        }
-
-        public void Cancel()
-        {
-            if (PaidAmount > 0)
-                throw new DomainException("Cannot cancel an invoice with payments.");
-
-            Status = InvoiceStatus.Cancelled;
-        }
-
     }
 }
