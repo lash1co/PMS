@@ -67,6 +67,7 @@ app.UseRouting();
 app.UseCors("AllowAngular");
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
