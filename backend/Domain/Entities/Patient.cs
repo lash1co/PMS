@@ -55,6 +55,29 @@ namespace Domain.Entities
             _invoices.Add(invoice);
             return invoice;
         }
+
+        public void UpdateDetails(
+            string firstName,
+            string lastName,
+            DateTime dateOfBirth,
+            string phone,
+            string? email)
+        {
+            if (dateOfBirth > DateTime.Today)
+                throw new DomainException("Date of birth cannot be in the future");
+
+            if (string.IsNullOrWhiteSpace(firstName))
+                throw new DomainException("First name is required");
+
+            if (string.IsNullOrWhiteSpace(lastName))
+                throw new DomainException("Last name is required");
+
+            FirstName = firstName;
+            LastName = lastName;
+            DateOfBirth = dateOfBirth;
+            Phone = phone;
+            Email = email;
+        }
     }
 
 }
