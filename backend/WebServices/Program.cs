@@ -10,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<WebServices.SharedBusiness.PatientProcess>();
+builder.Services.AddScoped<WebServices.SharedBusiness.InvoiceProcess>();
+
 // Configuring CORS to allow requests from Angular frontend
 builder.Services.AddCors(options =>
 {
