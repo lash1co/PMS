@@ -5,13 +5,14 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 
-namespace Authentication
+
+namespace WebServices.SharedBusiness
 {
     public class AuthenticationProcess
     {
-        private readonly DataAccess.AuthenticatonDBContext _dbContext;
+        private readonly DataAccess.DatabaseContext _dbContext;
 
-        public AuthenticationProcess(DataAccess.AuthenticatonDBContext dbContext)
+        public AuthenticationProcess(DataAccess.DatabaseContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -38,18 +39,19 @@ namespace Authentication
             }
 
             // Once he user is validated, we generate and return the authorization TOKEN.
-            return GenerateToken(credentials.Username, jwtKey, issuer);
+            return GenerateToken(user, jwtKey, issuer);
         }
 
-        private static string GenerateToken(string username, string jwtKey, string issuer)
+        private static string GenerateToken(User user, string jwtKey, string issuer)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[] {
-             new Claim(JwtRegisteredClaimNames.Sub, username),
-             new Claim(JwtRegisteredClaimNames.Email, "userInfo.EmailAddress"),
-             new Claim("DateOfJoing", DateTime.Now.ToString("yyyy-MM-dd")),
+             new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+             new Claim(JwtRegisteredClaimNames.Email, user.Email),
+             new Claim("Name", user.Name),
+             new Claim("DateOfJoing", user.CreationDate.ToString("yyyy-MM-dd")),
              new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
          };
 

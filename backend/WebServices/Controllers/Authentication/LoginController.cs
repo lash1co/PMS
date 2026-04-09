@@ -1,7 +1,11 @@
 ﻿using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Authentication;
+using Microsoft.EntityFrameworkCore;
+using System.Text;
+using System.Security.Cryptography;
+using WebServices.SharedBusiness;
+using WebServices.DataAccess;
 
 namespace WebServices.Controllers.Authentication
 {
@@ -10,20 +14,30 @@ namespace WebServices.Controllers.Authentication
     public class LoginController : Controller
     {
         private IConfiguration _config;
+        private readonly DatabaseContext _context;
 
-        public LoginController(IConfiguration config)
+        public LoginController(IConfiguration config, DatabaseContext context)
         {
             _config = config;
+            _context = context;
         }
 
         [AllowAnonymous]
         [HttpPost]
-        public IActionResult Login([FromBody] LoginCreadentials loginCreadentials)
+        public async Task<IActionResult> Login([FromBody] LoginCreadentials loginCreadentials)
         {
             /// implementation with try-catch for error handling
             try
             {
-                var token = AuthenticationProcess.Authenticate(
+                var inputBytes = Encoding.UTF8.GetBytes(loginCreadentials.Password);
+                var hashBytes = SHA256.HashData(inputBytes);
+                var hashPassword = Convert.ToHexString(hashBytes);
+                loginCreadentials.Password = hashPassword;
+
+                var dbOptions = new DbContextOptionsBuilder<DatabaseContext>().Options;
+                var authenticationProcess = new AuthenticationProcess(_context);
+
+                var token = await authenticationProcess.Authenticate(
                 loginCreadentials,
                 _config["Jwt:Key"],
                 _config["Jwt:Issuer"]
@@ -31,9 +45,9 @@ namespace WebServices.Controllers.Authentication
 
                 return Ok(new { token });
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized();
+                return Unauthorized(ex.Message);
             }
         }
     }
