@@ -13,6 +13,8 @@ namespace WebServices.DataAccess
         {
         }
 
+        public DbSet<User> Users { get; set; }
+
         public DbSet<Patient> DBPatients { get; set; }
 
         public DbSet<Doctor> DBDoctors { get; set; }
@@ -33,6 +35,27 @@ namespace WebServices.DataAccess
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.Id);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<User>()
+                .HasData(
+                    new User
+                    {
+                        Id = -1,
+                        Name = "PMS Administrator",
+                        Email = "adminPMS@unosquare.com",
+                        IsActive = true,
+                        UserName = "admin",
+                        Password = "387D800C0CC82412028CE6435ABC708A52C075D8ED8F9854FBE24691B5E46D8C", // Control123 (HEX codification)
+                        CreationDate = new DateTime(2026, 4, 9),
+                    }
+                );
 
             modelBuilder.Entity<Patient>()
                 .HasKey(p => p.Id);
