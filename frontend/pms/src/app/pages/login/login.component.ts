@@ -31,10 +31,11 @@ this.http.post<{ token: string }>(
 ).subscribe({
   next: response => {
     localStorage.setItem('token', response.token);
-    this.router.navigate(['/token']);
+    this.router.navigate(['/main-menu']);
   },
   error: err => {
-    alert('Login failed');
+    console.log(err);
+    alert("Login failed: " + err.error.message);
   }
 });
   }
