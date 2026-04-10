@@ -32,8 +32,8 @@ export class PatientService {
   }
 
   // Update patient by id
-  updatePatient(id: number, patient: Patient): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, patient);
+  updatePatient(id: number, patient: Patient): Observable<Patient> {
+    return this.http.put<Patient>(`${this.apiUrl}/${id}`, patient);
   }
 
   // Delete patient by id

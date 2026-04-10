@@ -1,133 +1,105 @@
-﻿using Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebServices.DataAccess;
+using WebServices.SharedBusiness;
 using WebServices.DTOs;
+using Domain.Entities;
+using Domain.Exceptions;
 
 namespace WebServices.Controllers.Patients
 {
     /// <summary>
-    /// Controller responsible for managing patient-related operations.
+    /// API Controller responsible for managing patient data and their related entities, such as invoices.
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize] //
     public class PatientsController : ControllerBase
     {
-        private readonly DatabaseContext _context;
-        public PatientsController(DatabaseContext context)
+        private readonly DatabaseContext _dbContext;
+        private readonly PatientProcess _patientProcess;
+
+        /// <summary>
+        /// Initializes a new instance of the PatientsController.
+        /// </summary>
+        public PatientsController(DatabaseContext dbContext, PatientProcess patientProcess)
         {
-            _context = context;
+            _dbContext = dbContext;
+            _patientProcess = patientProcess;
         }
 
         /// <summary>
         /// Retrieves a list of all registered patients.
         /// </summary>
-        /// <returns>A status 200 OK containing the list of patients.</returns>
-        // GET: api/patients
+        /// <returns>A collection of patients.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllPatients()
+        public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
         {
-            var patients = await _context.DBPatients.ToListAsync();
-            return Ok(patients);
+            return await _dbContext.DBPatients.ToListAsync();
         }
 
         /// <summary>
-        /// Retrieves a specific patient by their unique identifier.
+        /// Retrieves a specific patient by their unique identifier, including their invoices.
         /// </summary>
         /// <param name="id">The unique identifier of the patient.</param>
         /// <returns>The patient details if found; otherwise, a 404 Not Found response.</returns>
-        // GET: api/patients/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetPatientById(int id)
+        public async Task<ActionResult<Patient>> GetPatient(int id)
         {
-            var patient = await _context.DBPatients.FindAsync(id);
+            var patient = await _dbContext.DBPatients
+                .Include(p => p.Invoices)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (patient == null)
             {
-                return NotFound("Patient not found.");
+                return NotFound(new { message = "Patient not found." });
             }
 
-            return Ok(patient);
+            return patient;
         }
 
         /// <summary>
-        /// Searches for patients whose first name or last name contains the specified search term,
-        /// ignoring case and accents.
+        /// Searches for patients by matching multiple words in their first or last name, 
+        /// ignoring accents and case. Allows searching "FirstName LastName" or viceversa.
         /// </summary>
-        /// <param name="searchTerm">The term to search for within the patients' names.</param>
-        /// <returns>A list of matching patients or a 404 Not Found response if no matches exist.</returns>
-        // GET: api/patients/search?searchTerm=Name
+        /// <param name="searchTerm">The text to search for.</param>
+        /// <returns>A list of patients matching all search terms.</returns>
         [HttpGet("search")]
-        public async Task<IActionResult> SearchPatients([FromQuery] string searchTerm)
+        public async Task<ActionResult<IEnumerable<Patient>>> SearchPatients([FromQuery] string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return BadRequest("The search term cannot be empty.");
+                return await _dbContext.DBPatients.ToListAsync();
             }
 
-            var term = searchTerm.Trim();
+            string collation = "SQL_Latin1_General_CP1_CI_AI";
 
-            var patients = await _context.DBPatients
-                .Where(p =>
-                    EF.Functions.Collate(p.FirstName, "SQL_Latin1_General_CP1_CI_AI").Contains(term) ||
-                    EF.Functions.Collate(p.LastName, "SQL_Latin1_General_CP1_CI_AI").Contains(term))
-                .ToListAsync();
+            var query = _dbContext.DBPatients.AsQueryable();
 
-            if (!patients.Any())
+            var terms = searchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var term in terms)
             {
-                return NotFound($"No patients found matching the term '{searchTerm}'.");
+                query = query.Where(p =>
+                    EF.Functions.Collate(p.FirstName, collation).Contains(term) ||
+                    EF.Functions.Collate(p.LastName, collation).Contains(term));
             }
+
+            var patients = await query.ToListAsync();
 
             return Ok(patients);
         }
 
         /// <summary>
-        /// Registers a new patient in the system.
+        /// Creates a new patient record in the system.
         /// </summary>
-        /// <param name="patient">The patient object containing the details to be registered.</param>
-        /// <returns>A 201 Created response with the newly created patient data.</returns>
-        // POST: api/patients
+        /// <param name="patientDto">The data required to create a new patient.</param>
+        /// <returns>The newly created patient data.</returns>
         [HttpPost]
-        public async Task<IActionResult> CreatePatient([FromBody] Patient patient)
+        public async Task<ActionResult<PatientResponseDto>> CreatePatient([FromBody] PatientUpdateDto patientDto)
         {
             try
             {
-                _context.DBPatients.Add(patient);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(GetPatientById), new { id = patient.Id }, patient);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Updates an existing patient's information.
-        /// </summary>
-        // PUT: api/patients/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePatient(int id, [FromBody] PatientUpdateDto patientDto)
-        {
-            // 1. Validamos que el ID de la ruta coincida con el DTO
-            if (id != patientDto.Id)
-            {
-                return BadRequest("The ID in the URL does not match the ID of the patient to update.");
-            }
-
-            // 2. Buscamos el paciente existente en la base de datos
-            var existingPatient = await _context.DBPatients.FindAsync(id);
-            if (existingPatient == null)
-            {
-                return NotFound("The patient you are trying to update no longer exists.");
-            }
-
-            try
-            {
-                // 3. Actualizamos las propiedades usando el método controlado del Dominio (Encapsulamiento)
-                existingPatient.UpdateDetails(
+                var newPatient = _patientProcess.CreatePatient(
                     patientDto.FirstName,
                     patientDto.LastName,
                     patientDto.DateOfBirth,
@@ -135,47 +107,130 @@ namespace WebServices.Controllers.Patients
                     patientDto.Email
                 );
 
-                // 4. Guardamos los cambios. Entity Framework ya está rastreando a 'existingPatient'
-                await _context.SaveChangesAsync();
-            }
-            catch (Domain.Exceptions.DomainException ex)
-            {
-                // Si falla alguna validación de negocio (ej. fecha futura), regresamos el error
-                return BadRequest(ex.Message);
-            }
+                _dbContext.DBPatients.Add(newPatient);
+                await _dbContext.SaveChangesAsync();
 
-            return NoContent();
+                var responseDto = new PatientResponseDto
+                {
+                    Id = newPatient.Id,
+                    FirstName = newPatient.FirstName,
+                    LastName = newPatient.LastName,
+                    DateOfBirth = newPatient.DateOfBirth,
+                    Phone = newPatient.Phone,
+                    Email = newPatient.Email,
+                    CreatedAt = newPatient.CreatedAt
+                };
+
+                return Ok(responseDto);
+            }
+            catch (DomainException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         /// <summary>
-        /// Deletes a patient from the system.
+        /// Updates the details of an existing patient using business rules.
+        /// </summary>
+        /// <param name="id">The unique identifier of the patient to update.</param>
+        /// <param name="patientDto">The updated data for the patient.</param>
+        /// <returns>A success message along with the updated patient data (DTO).</returns>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdatePatient(int id, [FromBody] PatientUpdateDto patientDto)
+        {
+            var patientEntity = await _dbContext.DBPatients.FindAsync(id);
+
+            if (patientEntity == null)
+            {
+                return NotFound(new { message = "Patient not found." });
+            }
+
+            try
+            {
+                _patientProcess.UpdateDetails(
+                    patientEntity,
+                    patientDto.FirstName,
+                    patientDto.LastName,
+                    patientDto.DateOfBirth,
+                    patientDto.Phone,
+                    patientDto.Email
+                );
+
+                await _dbContext.SaveChangesAsync();
+
+                var responseDto = new PatientResponseDto
+                {
+                    Id = patientEntity.Id,
+                    FirstName = patientEntity.FirstName,
+                    LastName = patientEntity.LastName,
+                    DateOfBirth = patientEntity.DateOfBirth,
+                    Phone = patientEntity.Phone,
+                    Email = patientEntity.Email,
+                    CreatedAt = patientEntity.CreatedAt
+                };
+
+                return Ok(responseDto);
+            }
+            catch (DomainException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Creates and associates a new invoice for a specific patient.
+        /// </summary>
+        /// <param name="id">The unique identifier of the patient.</param>
+        /// <param name="invoiceDto">The data required to create the invoice.</param>
+        /// <returns>A success message and the new invoice ID.</returns>
+        [HttpPost("{id}/invoices")]
+        public async Task<IActionResult> CreateInvoiceForPatient(int id, [FromBody] InvoiceCreateDto invoiceDto)
+        {
+            var patientEntity = await _dbContext.DBPatients
+                .Include(p => p.Invoices)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (patientEntity == null)
+            {
+                return NotFound(new { message = "Patient not found." });
+            }
+
+            try
+            {
+                var newInvoice = _patientProcess.CreateInvoice(
+                    patientEntity,
+                    invoiceDto.Amount,
+                    invoiceDto.DueDate
+                );
+
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(new { message = "Invoice created successfully.", invoiceId = newInvoice.Id });
+            }
+            catch (DomainException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Deletes a specific patient from the system.
         /// </summary>
         /// <param name="id">The unique identifier of the patient to delete.</param>
-        /// <returns>A 204 No Content response if successful, or a 404 Not Found response if the patient does not exist.</returns>
-        // DELETE: api/patients/5
+        /// <returns>A 204 No Content response if successful.</returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePatient(int id)
         {
-            var patient = await _context.DBPatients.FindAsync(id);
+            var patient = await _dbContext.DBPatients.FindAsync(id);
             if (patient == null)
             {
-                return NotFound("Patient not found.");
+                return NotFound(new { message = "Patient not found." });
             }
 
-            _context.DBPatients.Remove(patient);
-            await _context.SaveChangesAsync();
+            _dbContext.DBPatients.Remove(patient);
+            await _dbContext.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        /// <summary>
-        /// Checks if a patient exists in the database.
-        /// </summary>
-        /// <param name="id">The unique identifier of the patient.</param>
-        /// <returns>True if the patient exists; otherwise, false.</returns>
-        private bool PatientExists(int id)
-        {
-            return _context.DBPatients.Any(e => e.Id == id);
         }
     }
 }

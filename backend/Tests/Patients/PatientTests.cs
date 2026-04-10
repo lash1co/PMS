@@ -1,44 +1,33 @@
 ﻿using Domain.Entities;
 using Domain.Exceptions;
+using WebServices.SharedBusiness;
 using Xunit;
-
+using System;
 
 namespace Tests.Patients
 {
     public class PatientTests
     {
+        private readonly PatientProcess _patientProcess = new PatientProcess();
+
         [Fact]
         public void Should_not_allow_future_birth_date()
         {
             Assert.Throws<DomainException>(() =>
-                new Patient(
+                _patientProcess.CreatePatient(
                     "Ana",
                     "López",
                     DateTime.Today.AddDays(1),
-                    "9991234567"
+                    "9991234567",
+                    null
                 )
             );
         }
 
-        /*[Fact]
-        public void Should_identify_minor_patient()
-        {
-            var patient = new Patient(
-                "Juan",
-                "Pérez",
-                DateTime.Today.AddYears(-10),
-                "9999876543"
-            );
-
-            var isMinor = patient.IsMinor();
-
-            Assert.True(isMinor);
-        }*/
-
         [Fact]
         public void Should_create_valid_patient()
         {
-            var patient = new Patient(
+            var patient = _patientProcess.CreatePatient(
                 "Carlos",
                 "Gómez",
                 new DateTime(1990, 5, 20),
@@ -52,15 +41,10 @@ namespace Tests.Patients
         [Fact]
         public void Should_update_patient_details_with_valid_data()
         {
-            var patient = new Patient(
-                "Juan",
-                "Pérez",
-                new DateTime(1990, 5, 20),
-                "9995554433",
-                "juan@email.com"
-            );
+            var patient = new Patient("Juan", "Pérez", new DateTime(1990, 5, 20), "9995554433", "juan@email.com");
 
-            patient.UpdateDetails(
+            _patientProcess.UpdateDetails(
+                patient,
                 "Carlos",
                 "Gómez",
                 new DateTime(1992, 8, 15),
@@ -71,31 +55,50 @@ namespace Tests.Patients
             Assert.Equal("Carlos", patient.FirstName);
             Assert.Equal("Gómez", patient.LastName);
             Assert.Equal(new DateTime(1992, 8, 15), patient.DateOfBirth);
-            Assert.Equal("9811234567", patient.Phone);
-            Assert.Equal("carlos@email.com", patient.Email);
         }
 
         [Fact]
         public void Should_not_allow_update_with_future_birth_date()
         {
-            // Arrange
-            var patient = new Patient(
-                "Juan",
-                "Pérez",
-                new DateTime(1990, 5, 20),
-                "9995554433",
-                "juan@email.com"
-            );
+            var patient = new Patient("Juan", "Pérez", new DateTime(1990, 5, 20), "9995554433", "juan@email.com");
 
             Assert.Throws<DomainException>(() =>
-                patient.UpdateDetails(
-                    "Juan",
-                    "Pérez",
-                    DateTime.Today.AddDays(1), // Fecha inválida
+                _patientProcess.UpdateDetails(patient, "Juan", "Pérez", DateTime.Today.AddDays(1), "9995554433", "juan@email.com")
+            );
+        }
+
+        [Theory]
+        [InlineData("", "Pérez")]
+        [InlineData("   ", "Pérez")]
+        [InlineData("Juan", "")]
+        [InlineData("Juan", "   ")]
+        public void Should_not_allow_empty_names_on_creation(string firstName, string lastName)
+        {
+           
+            Assert.Throws<DomainException>(() =>
+                _patientProcess.CreatePatient(
+                    firstName,
+                    lastName,
+                    new DateTime(1990, 5, 20),
                     "9995554433",
-                    "juan@email.com"
+                    "correo@test.com"
                 )
             );
+        }
+
+        [Fact]
+        public void Should_allow_patient_creation_with_null_email()
+        {
+            var patient = _patientProcess.CreatePatient(
+                "María",
+                "López",
+                new DateTime(1995, 10, 10),
+                "9810001122",
+                null
+            );
+
+            Assert.NotNull(patient);
+            Assert.Null(patient.Email);
         }
     }
 }

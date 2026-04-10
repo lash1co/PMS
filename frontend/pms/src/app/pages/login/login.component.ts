@@ -1,20 +1,22 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './login.component.html',
+  templateUrl: './login.component.html'
 })
 export class LoginComponent {
-  username = '';
-  password = '';
+  credentials = { username: '', password: '' };
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   signIn() {
     const body = {
@@ -38,5 +40,14 @@ this.http.post<{ token: string }>(
     alert("Login failed: " + err.error.message);
   }
 });
+  onLogin(): void {
+    this.authService.login(this.credentials).subscribe({
+      next: (success) => {
+        if (success) {
+          this.router.navigate(['/dashboard']);
+        }
+      },
+      error: (err) => console.error('Login error', err)
+    });
   }
 }
