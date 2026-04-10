@@ -79,6 +79,14 @@ namespace WebServices.DataAccess
                 .ValueGeneratedOnAdd();
 
             modelBuilder.Entity<Invoice>()
+                .Property(i => i.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.PaidAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Invoice>()
                 .HasOne(i => i.Patient)
                 .WithMany(p => p.Invoices);
 

@@ -58,12 +58,44 @@ namespace WebServices.Controllers.Patients
         }
 
         /// <summary>
+        /// Searches for patients by matching multiple words in their first or last name, 
+        /// ignoring accents and case. Allows searching "FirstName LastName" or viceversa.
+        /// </summary>
+        /// <param name="searchTerm">The text to search for.</param>
+        /// <returns>A list of patients matching all search terms.</returns>
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<Patient>>> SearchPatients([FromQuery] string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return await _dbContext.DBPatients.ToListAsync();
+            }
+
+            string collation = "SQL_Latin1_General_CP1_CI_AI";
+
+            var query = _dbContext.DBPatients.AsQueryable();
+
+            var terms = searchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var term in terms)
+            {
+                query = query.Where(p =>
+                    EF.Functions.Collate(p.FirstName, collation).Contains(term) ||
+                    EF.Functions.Collate(p.LastName, collation).Contains(term));
+            }
+
+            var patients = await query.ToListAsync();
+
+            return Ok(patients);
+        }
+
+        /// <summary>
         /// Creates a new patient record in the system.
         /// </summary>
         /// <param name="patientDto">The data required to create a new patient.</param>
         /// <returns>The newly created patient data.</returns>
         [HttpPost]
-        public async Task<ActionResult<Patient>> CreatePatient([FromBody] PatientUpdateDto patientDto)
+        public async Task<ActionResult<PatientResponseDto>> CreatePatient([FromBody] PatientUpdateDto patientDto)
         {
             try
             {
@@ -78,7 +110,18 @@ namespace WebServices.Controllers.Patients
                 _dbContext.DBPatients.Add(newPatient);
                 await _dbContext.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetPatient), new { id = newPatient.Id }, newPatient);
+                var responseDto = new PatientResponseDto
+                {
+                    Id = newPatient.Id,
+                    FirstName = newPatient.FirstName,
+                    LastName = newPatient.LastName,
+                    DateOfBirth = newPatient.DateOfBirth,
+                    Phone = newPatient.Phone,
+                    Email = newPatient.Email,
+                    CreatedAt = newPatient.CreatedAt
+                };
+
+                return Ok(responseDto);
             }
             catch (DomainException ex)
             {
@@ -91,7 +134,7 @@ namespace WebServices.Controllers.Patients
         /// </summary>
         /// <param name="id">The unique identifier of the patient to update.</param>
         /// <param name="patientDto">The updated data for the patient.</param>
-        /// <returns>A success message along with the updated patient data.</returns>
+        /// <returns>A success message along with the updated patient data (DTO).</returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePatient(int id, [FromBody] PatientUpdateDto patientDto)
         {
@@ -115,7 +158,18 @@ namespace WebServices.Controllers.Patients
 
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(new { message = "Patient updated successfully.", patient = patientEntity });
+                var responseDto = new PatientResponseDto
+                {
+                    Id = patientEntity.Id,
+                    FirstName = patientEntity.FirstName,
+                    LastName = patientEntity.LastName,
+                    DateOfBirth = patientEntity.DateOfBirth,
+                    Phone = patientEntity.Phone,
+                    Email = patientEntity.Email,
+                    CreatedAt = patientEntity.CreatedAt
+                };
+
+                return Ok(responseDto);
             }
             catch (DomainException ex)
             {

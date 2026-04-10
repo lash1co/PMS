@@ -8,7 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Esta línea es mágica: Evita que el serializador JSON se vuelva loco 
+        // con las relaciones de Entity Framework (Patient -> Invoices).
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 builder.Services.AddScoped<WebServices.SharedBusiness.PatientProcess>();
 builder.Services.AddScoped<WebServices.SharedBusiness.InvoiceProcess>();
