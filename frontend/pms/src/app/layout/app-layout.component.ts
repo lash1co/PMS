@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-layout',
@@ -35,7 +36,7 @@ import { RouterModule } from '@angular/router';
               <p class="text-gray-400 text-xs">Admin</p>
             </div>
           </div>
-          <button routerLink="/login" class="w-full text-left text-sm text-gray-400 hover:text-white transition">
+          <button (click)="onLogout()" class="w-full text-left text-sm text-gray-400 hover:text-white transition">
             Log out
           </button>
         </div>
@@ -54,4 +55,12 @@ import { RouterModule } from '@angular/router';
     </div>
   `
 })
-export class AppLayoutComponent {}
+
+export class AppLayoutComponent {
+  constructor(private authService: AuthService, private router: Router) {}
+
+  onLogout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+}

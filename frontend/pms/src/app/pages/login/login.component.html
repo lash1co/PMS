@@ -5,7 +5,7 @@
       PMS Login
     </h1>
 
-    <form (ngSubmit)="signIn()" class="space-y-4">
+    <form (ngSubmit)="onLogin()" class="space-y-4">
 
       <!-- Username -->
       <div>
@@ -20,7 +20,7 @@
           id="username"
           type="text"
           name="username"
-          [(ngModel)]="username"
+          [(ngModel)]="credentials.username"
           required
           class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
                  focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -40,7 +40,7 @@
           id="password"
           type="password"
           name="password"
-          [(ngModel)]="password"
+          [(ngModel)]="credentials.password"
           required
           class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm
                  focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
