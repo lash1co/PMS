@@ -27,7 +27,7 @@ export class AuthService {
       const data = await response.json();
       const token = data.token;
       const decodedToken = this.decodeToken(token);
-      console.log('Decoded Token:', decodedToken);
+
       localStorage.setItem('pms_token', token);
       localStorage.setItem('pms_user', decodedToken.sub);
       localStorage.setItem('pms_user_name', decodedToken.Name);
