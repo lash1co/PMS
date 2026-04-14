@@ -9,18 +9,47 @@ import { tap } from 'rxjs/operators';
 export class AuthService {
   constructor(private http: HttpClient) {}
 
-  login(credentials: any): Observable<boolean> {
-    // this.http.post<any>('BACKEND/login', credentials)
+  async login(credentials: any): Promise<boolean> {
+    try {
+      const requestBody = {
+        username: credentials.username,
+        password: credentials.password
+      };
 
+      const response = await fetch(
+        'http://localhost:5231/api/login',
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        });
 
-    /// Login Sim ///
-    
-    console.log('Sim with:', credentials);
-    
-    localStorage.setItem('pms_token', 'token_falso_para_demo');
-    
-    return of(true); 
+      const data = await response.json();
+      const token = data.token;
+      const decodedToken = this.decodeToken(token);
+      console.log('Decoded Token:', decodedToken);
+      localStorage.setItem('pms_token', token);
+      localStorage.setItem('pms_user', decodedToken.sub);
+      localStorage.setItem('pms_user_name', decodedToken.Name);
+
+      return response.ok;
+    }
+    catch (error: any) {
+      alert('Login failed: ' + error.message);
+      return false;
+    }
   }
+
+  decodeToken(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  }
+
 
   logout(): void {
     localStorage.removeItem('pms_token');

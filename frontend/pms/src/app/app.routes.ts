@@ -26,11 +26,4 @@ export const routes: Routes = [
   },
 
   { path: '**', redirectTo: 'dashboard' }
-export const routes: Routes =
-[
-    { path: '', component: LoginComponent },
-    { path: 'main-menu', component: MainMenu },
-    { path: 'patients', component: PatientList },
-    { path: 'token', component: TokenComponent},
-    { path: '', redirectTo: '/patients', pathMatch: 'full' } // Redirigir al listado por defecto
-];
+]
