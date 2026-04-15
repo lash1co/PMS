@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service'; 
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -18,14 +18,11 @@ export class LoginComponent {
     private router: Router
   ) {}
 
-  onLogin(): void {
-    this.authService.login(this.credentials).subscribe({
-      next: (success) => {
-        if (success) {
-          this.router.navigate(['/dashboard']);
-        }
-      },
-      error: (err) => console.error('Login error', err)
-    });
+  async onLogin(): Promise<void> {
+    const loginProcess = await this.authService.login(this.credentials);
+    console.log(loginProcess);
+    if (loginProcess) {
+      this.router.navigate(['/dashboard']);
+    }
   }
 }

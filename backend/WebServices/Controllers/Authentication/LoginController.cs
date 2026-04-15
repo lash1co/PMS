@@ -47,7 +47,7 @@ namespace WebServices.Controllers.Authentication
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(ex.Message);
+                return Unauthorized(new { ex.Message });
             }
         }
     }

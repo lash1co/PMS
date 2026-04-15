@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
   template: `
     <div class="space-y-6">
       <div>
-        <h2 class="text-2xl font-semibold text-gray-800">Welcome back, Admin</h2>
+        <h2 class="text-2xl font-semibold text-gray-800">Welcome back, {{userName}}</h2>
         <p class="text-gray-500 mt-1">Quick overview.</p>
       </div>
 
@@ -24,11 +24,17 @@ import { Component } from '@angular/core';
           <p class="text-3xl font-bold text-orange-500 mt-2">5</p>
         </div>
       </div>
-      
+
       <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-64 flex items-center justify-center">
         <p class="text-gray-400 italic">Future visualization here...</p>
       </div>
     </div>
   `
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  userName: string = '';
+
+  constructor() {
+    this.userName = localStorage.getItem('pms_user_name') || '';
+  }
+}
