@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebServices.DataAccess;
 
@@ -11,9 +12,11 @@ using WebServices.DataAccess;
 namespace WebServices.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260414215319_UsersRoleDefinition")]
+    partial class UsersRoleDefinition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -274,17 +277,6 @@ namespace WebServices.Migrations
                             Password = "387D800C0CC82412028CE6435ABC708A52C075D8ED8F9854FBE24691B5E46D8C",
                             Role = "ADMIN",
                             UserName = "admin"
-                        },
-                        new
-                        {
-                            Id = -2,
-                            CreationDate = new DateTime(2026, 4, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "patientPMS@unosquare.com",
-                            IsActive = true,
-                            Name = "PMS Patient",
-                            Password = "387D800C0CC82412028CE6435ABC708A52C075D8ED8F9854FBE24691B5E46D8C",
-                            Role = "PATIENT",
-                            UserName = "patient"
                         });
                 });
 

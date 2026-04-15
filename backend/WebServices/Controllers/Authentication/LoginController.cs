@@ -34,7 +34,6 @@ namespace WebServices.Controllers.Authentication
                 var hashPassword = Convert.ToHexString(hashBytes);
                 loginCreadentials.Password = hashPassword;
 
-                var dbOptions = new DbContextOptionsBuilder<DatabaseContext>().Options;
                 var authenticationProcess = new AuthenticationProcess(_context);
 
                 var token = await authenticationProcess.Authenticate(

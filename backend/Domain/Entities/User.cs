@@ -42,5 +42,10 @@
         /// Gets or sets the date and time when the object was created.
         /// </summary>
         public DateTime CreationDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets User's role definition for the application
+        /// </summary>
+        public string Role { get; set; }
     }
 }

@@ -14,7 +14,14 @@ namespace Domain.Entities
         /// </summary>
         public int Id { get; set; }
 
+        /// <summary>
+        /// Gets or sets User Fisrtname
+        /// </summary>
         public string FirstName { get; set; } = null!;
+
+        /// <summary>
+        /// Gets or sets User Lastname
+        /// </summary>
         public string LastName { get; set; } = null!;
 
         /// <summary>
@@ -22,7 +29,14 @@ namespace Domain.Entities
         /// </summary>
         public DateTime DateOfBirth { get; set; }
 
+        /// <summary>
+        /// Gets or sets User's phone number
+        /// </summary>
         public string Phone { get; set; } = null!;
+
+        /// <summary>
+        /// Gets or sets User's email
+        /// </summary>
         public string? Email { get; set; }
 
         // public string MedicalRecordNumber { get; private set; } = null!;
