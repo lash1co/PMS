@@ -8,7 +8,7 @@
         /// <summary>
         /// Constants related with role definitions
         /// </summary>
-        public static class RoleConostants
+        public static class RoleConstants
         {
             public const string AdminRole = "ADMIN";
             public const string PatientRole = "PATIENT";

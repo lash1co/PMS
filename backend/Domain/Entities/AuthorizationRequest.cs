@@ -17,7 +17,7 @@
 
         /// <summary>
         /// Gets or sets token validation message
-        /// Null when toen validation is correct
+        /// Null when token validation is correct
         /// </summary>
         public string? message { get; set; }
     }

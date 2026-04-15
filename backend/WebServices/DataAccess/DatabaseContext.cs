@@ -55,7 +55,18 @@ namespace WebServices.DataAccess
                         UserName = "admin",
                         Password = "387D800C0CC82412028CE6435ABC708A52C075D8ED8F9854FBE24691B5E46D8C", // Control123 (HEX codification)
                         CreationDate = new DateTime(2026, 4, 9),
-                        Role = UserConstants.RoleConostants.AdminRole,
+                        Role = UserConstants.RoleConstants.AdminRole,
+                    },
+                    new User
+                    {
+                        Id = -2,
+                        Name = "PMS Patient",
+                        Email = "patientPMS@unosquare.com",
+                        IsActive = true,
+                        UserName = "patient",
+                        Password = "387D800C0CC82412028CE6435ABC708A52C075D8ED8F9854FBE24691B5E46D8C", // Control123 (HEX codification)
+                        CreationDate = new DateTime(2026, 4, 9),
+                        Role = UserConstants.RoleConstants.PatientRole,
                     }
                 );
 
