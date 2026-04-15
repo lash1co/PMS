@@ -21,6 +21,8 @@ namespace WebServices.DataAccess
 
         public DbSet<Invoice> DBInvoices { get; set; }
 
+        public DbSet<Insurance> DBInsurances { get; set; }
+
         public DbSet<MedicalRecord> DBMedicalRecords { get; set; }
 
         public DbSet<Appointment> DBAppointments { get; set; }
@@ -104,6 +106,23 @@ namespace WebServices.DataAccess
             modelBuilder.Entity<Appointment>()
                 .HasOne(p => p.Patient)
                 .WithMany(ap => ap.Appointments);
+
+            modelBuilder.Entity<Insurance>()
+                .HasKey(i => i.Id);
+
+            modelBuilder.Entity<Insurance>()
+                .Property(i => i.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Insurance>()
+                .Property(i => i.OfficeVisitCopay)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Insurance>()
+                .HasOne(i => i.Patient)
+                .WithMany(p => p.Insurances)
+                .HasForeignKey(i => i.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<MedicalRecord>()
                 .HasKey(mr => mr.Id);
