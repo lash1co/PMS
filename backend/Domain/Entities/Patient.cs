@@ -69,6 +69,11 @@ namespace Domain.Entities
         public ICollection<Invoice>? Invoices { get; set; }
 
         /// <summary>
+        /// Collection of insurance policies associated with the patient. A patient can have multiple insurances (e.g., medical, dental, vision).
+        /// </summary>
+        public ICollection<Insurance>? Insurances { get; set; }
+
+        /// <summary>
         /// Parameterless constructor required by Entity Framework Core.
         /// </summary>
         public Patient() { }
