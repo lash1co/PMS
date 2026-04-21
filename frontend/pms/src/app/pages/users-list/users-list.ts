@@ -1,11 +1,12 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { UserModal } from '../user-modal/user-modal';
 import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-users-list',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, UserModal],
   templateUrl: './users-list.html',
   styleUrl: './users-list.css',
 })
@@ -28,6 +29,10 @@ export class UsersList implements OnInit {
   constructor(private userService: UserService) {}
 
   ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
     this.userService.getUsers().subscribe((users) => {
       this.users.set(users);
     });
@@ -35,7 +40,6 @@ export class UsersList implements OnInit {
 
   openCreateModal(): void {
     this.isEditing.set(false);
-    alert('Opening create user modal');
     this.currentUser = {
       id: 0,
       userName: '',
@@ -47,23 +51,36 @@ export class UsersList implements OnInit {
       creationDate: new Date()
     };
     this.showModal.set(true);
-    //this.currentUser = this.getEmptyUser();
   }
 
   openEditModal(user: UserInterface): void {
     this.isEditing.set(true);
     this.currentUser = { ...user };
-
-    alert(`Editing user: ${user.userName}`);
-
     this.showModal.set(true);
+  }
+
+  saveUser(user: UserInterface): void {
+    if (this.isEditing()) {
+      // Handle update
+      alert(`User ${user.userName} updated successfully!`);
+      // TODO: Call userService.updateUser(user).subscribe(...)
+    } else {
+      // Handle create
+      alert(`User ${user.userName} created successfully!`);
+      // TODO: Call userService.createUser(user).subscribe(...)
+    }
+    this.closeModal();
+    this.loadUsers();
+  }
+
+  closeModal(): void {
+    this.showModal.set(false);
   }
 
   deleteUser(id?: number): void {
     if (id && confirm('Are you sure to remove this user? This action cannot be undone.')) {
       alert(`User with ID ${id} deleted successfully!`);
-      // Here you would call the service to delete the user and refresh the list
-      // this.userService.deleteUser(id).subscribe(() => this.loadUsers()
+      // TODO: Call userService.deleteUser(id).subscribe(() => this.loadUsers())
     }
   }
 }
