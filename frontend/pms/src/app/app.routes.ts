@@ -6,6 +6,7 @@ import { MainMenu } from './pages/main-menu/main-menu';
 import { PatientList } from './pages/patient-list/patient-list';
 import { authGuard } from './guards/auth.guard'; // Importa el guard
 import { TokenComponent } from './pages/token/token.component';
+import { UsersList } from './pages/users-list/users-list';
 
 export const routes: Routes = [
 
@@ -21,7 +22,8 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: DashboardComponent },
-      { path: 'patients', component: PatientList }
+      { path: 'patients', component: PatientList },
+      { path: 'users', component: UsersList },
     ]
   },
 
