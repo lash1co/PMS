@@ -1,0 +1,50 @@
+/* Modal Container Styles */
+:host {
+  display: block;
+}
+
+/* Focus and accessibility */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* Animation for modal appearance */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bg-white {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .max-w-md {
+    max-width: 100%;
+  }
+
+  input,
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Custom scrollbar for better UX */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
