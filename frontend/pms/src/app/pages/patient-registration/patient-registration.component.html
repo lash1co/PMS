@@ -1,0 +1,87 @@
+<div class="max-w-4xl mx-auto p-6 md:p-8 bg-white rounded-xl shadow-lg mt-10">
+  
+  <div class="text-center mb-8">
+    <h2 class="text-3xl font-bold text-slate-800">Patient Registration</h2>
+    <p class="text-slate-500 mt-2">Please complete your personal and medical information.</p>
+  </div>
+  
+  <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="space-y-8">
+    
+    <fieldset formGroupName="personalInfo" class="border border-slate-200 rounded-xl p-6 bg-slate-50 relative">
+      <legend class="text-lg font-semibold text-blue-600 px-3 bg-slate-50 rounded border border-slate-200 shadow-sm ml-4">
+        Personal Information
+      </legend>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div class="flex flex-col">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Name:</label>
+          <input type="text" formControlName="firstName" placeholder="Ex: John" 
+                 class="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors">
+        </div>
+        
+        <div class="flex flex-col">
+          <label class="block text-sm font-medium text-slate-700 mb-1">LastName:</label>
+          <input type="text" formControlName="lastName" placeholder="Ex. Perez"
+                 class="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors">
+        </div>
+
+        <div class="flex flex-col">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Date of Birth:</label>
+          <input type="date" formControlName="dateOfBirth"
+                 class="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors">
+        </div>
+
+        <div class="flex flex-col">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Phone:</label>
+          <input type="tel" formControlName="phone" placeholder="10 digits, e.g. 5551234567"
+                 class="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors">
+        </div>
+
+        <div class="flex flex-col md:col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Email (Optional):</label>
+          <input type="email" formControlName="email" placeholder="example@email.com"
+                 class="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset formGroupName="insuranceInfo" class="border border-slate-200 rounded-xl p-6 bg-slate-50 relative">
+      <legend class="text-lg font-semibold text-blue-600 px-3 bg-slate-50 rounded border border-slate-200 shadow-sm ml-4">
+        Insurance Information
+      </legend>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div class="flex flex-col md:col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Payer Name:</label>
+          <input type="text" formControlName="payerName" placeholder="Ej. GNP, AXA"
+                 class="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors">
+        </div>
+
+        <div class="flex flex-col">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Member ID:</label>
+          <input type="text" formControlName="memberId" placeholder="Ex. 1234567890"
+                 class="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors">
+        </div>
+
+        <div class="flex flex-col">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Relationship to Subscriber:</label>
+          <select formControlName="relationshipToSubscriber"
+                  class="w-full px-4 py-2 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors bg-white">
+            <option value="Self">Self</option>
+            <option value="Spouse">Spouse</option>
+            <option value="Child">Child</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="flex justify-end pt-4 border-t border-slate-200 mt-8">
+      <button type="submit" 
+              [disabled]="registrationForm.invalid"
+              class="w-full md:w-auto px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+        Submit Registration
+      </button>
+    </div>
+    
+  </form>
+</div>
