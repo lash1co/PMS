@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents the result of an upsert operation for a user, including the operation status and an optional message.
     /// </summary>
-    public class UserUpsertRequest
+    public class UpsertRequest
     {
         /// <summary>
         /// Gets or sets a value indicating whether the upsert operation completed successfully.

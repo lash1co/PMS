@@ -28,6 +28,10 @@ namespace WebServices.DataAccess
 
         public DbSet<Appointment> DBAppointments { get; set; }
 
+        public DbSet<DoctorRestSchedule> DBDoctorRestSchedules { get; set; }
+
+        public DbSet<ScheduleView> DBScheduleViews { get; set; }
+
         public DbSet<Prescriptions> DBPrescriptions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -119,6 +123,48 @@ namespace WebServices.DataAccess
             modelBuilder.Entity<Appointment>()
                 .HasOne(p => p.Patient)
                 .WithMany(ap => ap.Appointments);
+
+            modelBuilder.Entity<DoctorRestSchedule>()
+                .HasKey(dr => dr.Id);
+
+            modelBuilder.Entity<DoctorRestSchedule>()
+                .Property(dr => dr.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<DoctorRestSchedule>()
+                .HasOne(dr => dr.Doctor)
+                .WithMany(d => d.DoctorRestSchedules);
+
+            modelBuilder.Entity<ScheduleView>(sv =>
+            {
+                sv.HasNoKey();
+                sv.ToSqlQuery<ScheduleView>("SELECT 'Appointment' AS Type," +
+                    "a.Id," +
+                    "CAST(a.StartTime AS Date) AS Date," +
+                    "a.StartTime," +
+                    "a.EndTime," +
+                    "a.Status AS ScheduleStatus," +
+                    "a.Reason AS ScheduleDescription," +
+                    "a.DoctorId," +
+                    "d.Name AS DoctorName," +
+                    "a.PatientId," +
+                    "p.Name AS PatientName " +
+                    "FROM DBAppointments a " +
+                    "JOIN DBDoctors d ON a.DoctorId = d.Id " +
+                    "JOIN DBPatients p ON a.PatientId = p.Id " +
+                    "UNION " +
+                    "SELECT 'Rest'," +
+                    "dr.Id," +
+                    "CAST(dr.StartTime AS Date)," +
+                    "dr.StartTime," +
+                    "dr.EndTime," +
+                    "dr.DoctorId," +
+                    "d.Name AS DoctorName " +
+                    "NULL," +
+                    "NULL " +
+                    "FROM DBDoctorRestSchedules dr " +
+                    "JOIN DBDoctors d ON dr.DoctorId = d.Id");
+            });
 
             modelBuilder.Entity<Insurance>()
                 .HasKey(i => i.Id);

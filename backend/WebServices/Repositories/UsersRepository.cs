@@ -29,7 +29,7 @@ namespace WebServices.Repositories
         /// <param name="user">The user entity to create. The Password property must contain the plain text password to be hashed. Cannot
         /// be null.</param>
         /// <returns>A UserUpsertRequest indicating whether the user was created successfully and containing a status message.</returns>
-        public async Task<UserUpsertRequest> CreateUser(User user)
+        public async Task<UpsertRequest> CreateUser(User user)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace WebServices.Repositories
                 _dbContext.Users.Add(user);
                 await _dbContext.SaveChangesAsync();
 
-                return new UserUpsertRequest
+                return new UpsertRequest
                 {
                     UpsertSuccessfull = true,
                     Message = "User created successfully."
@@ -49,7 +49,7 @@ namespace WebServices.Repositories
             }
             catch (Exception ex)
             {
-                return new UserUpsertRequest
+                return new UpsertRequest
                 {
                     UpsertSuccessfull = false,
                     Message = $"Error creating user: {ex.Message}"
@@ -66,14 +66,14 @@ namespace WebServices.Repositories
         /// <param name="user">The user entity containing updated information. The user's Id must correspond to an existing user. Cannot be
         /// null.</param>
         /// <returns>A UserUpsertRequest indicating whether the update was successful and providing a descriptive message.</returns>
-        public async Task<UserUpsertRequest> UpdateUser(User user)
+        public async Task<UpsertRequest> UpdateUser(User user)
         {
             try
             {
                 var existingUser = await _dbContext.Users.FindAsync(user.Id);
                 if (existingUser == null)
                 {
-                    return new UserUpsertRequest
+                    return new UpsertRequest
                     {
                         UpsertSuccessfull = false,
                         Message = "User not found."
@@ -85,7 +85,7 @@ namespace WebServices.Repositories
                 existingUser.Role = user.Role;
 
                 await _dbContext.SaveChangesAsync();
-                return new UserUpsertRequest
+                return new UpsertRequest
                 {
                     UpsertSuccessfull = true,
                     Message = "User updated successfully."
@@ -93,7 +93,7 @@ namespace WebServices.Repositories
             }
             catch (Exception ex)
             {
-                return new UserUpsertRequest
+                return new UpsertRequest
                 {
                     UpsertSuccessfull = false,
                     Message = $"Error updating user: {ex.Message}"

@@ -27,5 +27,11 @@
         /// prescriptions have not been loaded or the doctor has none.
         /// </summary>
         public ICollection<Prescriptions>? Prescriptions { get; set; }
+
+        /// <summary>
+        /// Collection of rest schedules associated with the doctor. May be null if
+        /// rest schedules have not been loaded or the doctor has none.
+        /// </summary>
+        public ICollection<DoctorRestSchedule>? DoctorRestSchedules { get; set; }
     }
 }
