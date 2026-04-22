@@ -24,6 +24,12 @@ export class AuthService {
           body: JSON.stringify(requestBody),
         });
 
+      if (!response.ok) {
+        console.log(response);
+        alert('Login failed: ' + response.statusText);
+        return false;
+      }
+
       const data = await response.json();
       const token = data.token;
       const decodedToken = this.decodeToken(token);

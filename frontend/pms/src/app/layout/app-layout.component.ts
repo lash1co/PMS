@@ -16,6 +16,11 @@ import { AuthService } from '../services/auth.service';
         </div>
 
         <nav class="flex-1 px-4 py-6 space-y-2">
+          <a routerLink="/users" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
+             class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
+             <span class="font-medium">Users Management</span>
+          </a>
+
           <a routerLink="/dashboard" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
              class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
              <span class="font-medium">Dashboard</span>
