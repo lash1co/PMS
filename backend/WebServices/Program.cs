@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WebServices.DataAccess;
+using WebServices.SharedBusiness;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +15,13 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
-builder.Services.AddScoped<WebServices.SharedBusiness.PatientProcess>();
-builder.Services.AddScoped<WebServices.SharedBusiness.InvoiceProcess>();
+builder.Services.AddScoped<PatientProcess>();
+builder.Services.AddScoped<InvoiceProcess>();
+builder.Services.AddScoped<InsuranceProcess>();
+builder.Services.AddScoped<AuthenticationProcess>();
+
+// Adding in-memory for temporary caching needs. In this case used for storing JTI values for token revocation. This can be replaced with a persistent caching solution if needed in the future.
+builder.Services.AddMemoryCache();
 
 // Configuring CORS to allow requests from Angular frontend
 builder.Services.AddCors(options =>
