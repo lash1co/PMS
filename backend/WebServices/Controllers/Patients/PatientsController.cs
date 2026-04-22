@@ -2,25 +2,37 @@
 using Microsoft.EntityFrameworkCore;
 using WebServices.DataAccess;
 using WebServices.SharedBusiness;
-using WebServices.DTOs;
 using Domain.Entities;
 using Domain.Exceptions;
 
 namespace WebServices.Controllers.Patients
 {
     /// <summary>
-    /// API Controller responsible for managing patient data and their related entities, such as invoices.
+    /// Represents the data required to create or update a patient.
+    /// </summary>
+    public record PatientRequestRecord(string FirstName, string LastName, DateTime DateOfBirth, string Phone, string? Email);
+
+    /// <summary>
+    /// Represents the patient data returned to the client.
+    /// </summary>
+    public record PatientResponseRecord(int Id, string FirstName, string LastName, DateTime DateOfBirth, string Phone, string? Email, DateTime CreatedAt);
+
+    /// <summary>
+    /// API Controller responsible for managing core patient data (CRUD operations).
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    // [Authorize] // Descomentar si el CRUD básico de pacientes requiere autenticación
     public class PatientsController : ControllerBase
     {
         private readonly DatabaseContext _dbContext;
         private readonly PatientProcess _patientProcess;
 
         /// <summary>
-        /// Initializes a new instance of the PatientsController.
+        /// Initializes a new instance of the <see cref="PatientsController"/>.
         /// </summary>
+        /// <param name="dbContext">The database context for data access.</param>
+        /// <param name="patientProcess">The business logic processor for patient operations.</param>
         public PatientsController(DatabaseContext dbContext, PatientProcess patientProcess)
         {
             _dbContext = dbContext;
@@ -92,36 +104,30 @@ namespace WebServices.Controllers.Patients
         /// <summary>
         /// Creates a new patient record in the system.
         /// </summary>
-        /// <param name="patientDto">The data required to create a new patient.</param>
+        /// <param name="request">The data required to create a new patient.</param>
         /// <returns>The newly created patient data.</returns>
         [HttpPost]
-        public async Task<ActionResult<PatientResponseDto>> CreatePatient([FromBody] PatientUpdateDto patientDto)
+        public async Task<ActionResult<PatientResponseRecord>> CreatePatient([FromBody] PatientRequestRecord request)
         {
             try
             {
                 var newPatient = _patientProcess.CreatePatient(
-                    patientDto.FirstName,
-                    patientDto.LastName,
-                    patientDto.DateOfBirth,
-                    patientDto.Phone,
-                    patientDto.Email
+                    request.FirstName,
+                    request.LastName,
+                    request.DateOfBirth,
+                    request.Phone,
+                    request.Email
                 );
 
                 _dbContext.DBPatients.Add(newPatient);
                 await _dbContext.SaveChangesAsync();
 
-                var responseDto = new PatientResponseDto
-                {
-                    Id = newPatient.Id,
-                    FirstName = newPatient.FirstName,
-                    LastName = newPatient.LastName,
-                    DateOfBirth = newPatient.DateOfBirth,
-                    Phone = newPatient.Phone,
-                    Email = newPatient.Email,
-                    CreatedAt = newPatient.CreatedAt
-                };
+                var response = new PatientResponseRecord(
+                    newPatient.Id, newPatient.FirstName, newPatient.LastName,
+                    newPatient.DateOfBirth, newPatient.Phone, newPatient.Email, newPatient.CreatedAt
+                );
 
-                return Ok(responseDto);
+                return Ok(response);
             }
             catch (DomainException ex)
             {
@@ -133,79 +139,25 @@ namespace WebServices.Controllers.Patients
         /// Updates the details of an existing patient using business rules.
         /// </summary>
         /// <param name="id">The unique identifier of the patient to update.</param>
-        /// <param name="patientDto">The updated data for the patient.</param>
+        /// <param name="request">The updated data for the patient.</param>
         /// <returns>A success message along with the updated patient data (DTO).</returns>
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePatient(int id, [FromBody] PatientUpdateDto patientDto)
+        public async Task<IActionResult> UpdatePatient(int id, [FromBody] PatientRequestRecord request)
         {
             var patientEntity = await _dbContext.DBPatients.FindAsync(id);
-
-            if (patientEntity == null)
-            {
-                return NotFound(new { message = "Patient not found." });
-            }
+            if (patientEntity == null) return NotFound(new { message = "Patient not found." });
 
             try
             {
-                _patientProcess.UpdateDetails(
-                    patientEntity,
-                    patientDto.FirstName,
-                    patientDto.LastName,
-                    patientDto.DateOfBirth,
-                    patientDto.Phone,
-                    patientDto.Email
-                );
-
+                _patientProcess.UpdateDetails(patientEntity, request.FirstName, request.LastName, request.DateOfBirth, request.Phone, request.Email);
                 await _dbContext.SaveChangesAsync();
 
-                var responseDto = new PatientResponseDto
-                {
-                    Id = patientEntity.Id,
-                    FirstName = patientEntity.FirstName,
-                    LastName = patientEntity.LastName,
-                    DateOfBirth = patientEntity.DateOfBirth,
-                    Phone = patientEntity.Phone,
-                    Email = patientEntity.Email,
-                    CreatedAt = patientEntity.CreatedAt
-                };
-
-                return Ok(responseDto);
-            }
-            catch (DomainException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Creates and associates a new invoice for a specific patient.
-        /// </summary>
-        /// <param name="id">The unique identifier of the patient.</param>
-        /// <param name="invoiceDto">The data required to create the invoice.</param>
-        /// <returns>A success message and the new invoice ID.</returns>
-        [HttpPost("{id}/invoices")]
-        public async Task<IActionResult> CreateInvoiceForPatient(int id, [FromBody] InvoiceCreateDto invoiceDto)
-        {
-            var patientEntity = await _dbContext.DBPatients
-                .Include(p => p.Invoices)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (patientEntity == null)
-            {
-                return NotFound(new { message = "Patient not found." });
-            }
-
-            try
-            {
-                var newInvoice = _patientProcess.CreateInvoice(
-                    patientEntity,
-                    invoiceDto.Amount,
-                    invoiceDto.DueDate
+                var response = new PatientResponseRecord(
+                    patientEntity.Id, patientEntity.FirstName, patientEntity.LastName,
+                    patientEntity.DateOfBirth, patientEntity.Phone, patientEntity.Email, patientEntity.CreatedAt
                 );
 
-                await _dbContext.SaveChangesAsync();
-
-                return Ok(new { message = "Invoice created successfully.", invoiceId = newInvoice.Id });
+                return Ok(response);
             }
             catch (DomainException ex)
             {
