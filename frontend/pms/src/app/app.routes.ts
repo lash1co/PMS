@@ -4,7 +4,7 @@ import { AppLayoutComponent } from './layout/app-layout.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { MainMenu } from './pages/main-menu/main-menu';
 import { PatientList } from './pages/patient-list/patient-list';
-import { authGuard } from './guards/auth.guard'; // Importa el guard
+import { authGuard } from './guards/auth.guard';
 import { TokenComponent } from './pages/token/token.component';
 import { PatientRegistrationComponent } from './pages/patient-registration/patient-registration.component';
 
@@ -15,7 +15,7 @@ export const routes: Routes = [
 
   { path: 'login', component: LoginComponent },
 
-  { path: 'register', component: PatientRegistrationComponent },
+  { path: 'register/:token', component: PatientRegistrationComponent },
 
   {
     path: '',
