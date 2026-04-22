@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebServices.DataAccess;
 
@@ -11,9 +12,11 @@ using WebServices.DataAccess;
 namespace WebServices.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260416214719_AddInsuranceEntity")]
+    partial class AddInsuranceEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,119 +77,6 @@ namespace WebServices.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DBDoctors");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Insurance", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("EffectiveDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ExpirationDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("GroupNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPrimary")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastVerifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("MemberId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("OfficeVisitCopay")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("PatientId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PayerId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PayerName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PlanType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RelationshipToSubscriber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RxBIN")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RxGroup")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RxPCN")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("SubscriberDOB")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SubscriberName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VerificationStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PatientId");
-
-                    b.ToTable("DBInsurances");
-                });
-
-            modelBuilder.Entity("Domain.Entities.DoctorRestSchedule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DoctorId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DoctorId");
-
-                    b.ToTable("DBDoctorRestSchedules");
                 });
 
             modelBuilder.Entity("Domain.Entities.Insurance", b =>
@@ -423,50 +313,6 @@ namespace WebServices.Migrations
                     b.ToTable("DBPrescriptions");
                 });
 
-            modelBuilder.Entity("Domain.Entities.ScheduleView", b =>
-                {
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<int>("DoctorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("DoctorName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("PatientId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PatientName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ScheduleDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ScheduleStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.ToTable("DBScheduleViews");
-
-                    b.ToSqlQuery("SELECT 'Appointment' AS Type,a.Id,CAST(a.StartTime AS Date) AS Date,a.StartTime,a.EndTime,a.Status AS ScheduleStatus,a.Reason AS ScheduleDescription,a.DoctorId,d.Name AS DoctorName,a.PatientId,p.Name AS PatientName FROM DBAppointments a JOIN DBDoctors d ON a.DoctorId = d.Id JOIN DBPatients p ON a.PatientId = p.Id UNION SELECT 'Rest',dr.Id,CAST(dr.StartTime AS Date),dr.StartTime,dr.EndTime,dr.DoctorId,d.Name AS DoctorName NULL,NULL FROM DBDoctorRestSchedules dr JOIN DBDoctors d ON dr.DoctorId = d.Id");
-                });
-
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -560,28 +406,6 @@ namespace WebServices.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("Domain.Entities.DoctorRestSchedule", b =>
-                {
-                    b.HasOne("Domain.Entities.Doctor", "Doctor")
-                        .WithMany("DoctorRestSchedules")
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Doctor");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Insurance", b =>
-                {
-                    b.HasOne("Domain.Entities.Patient", "Patient")
-                        .WithMany("Insurances")
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Patient");
-                });
-
             modelBuilder.Entity("Domain.Entities.Invoice", b =>
                 {
                     b.HasOne("Domain.Entities.Patient", "Patient")
@@ -626,8 +450,6 @@ namespace WebServices.Migrations
             modelBuilder.Entity("Domain.Entities.Doctor", b =>
                 {
                     b.Navigation("Appointments");
-
-                    b.Navigation("DoctorRestSchedules");
 
                     b.Navigation("Prescriptions");
                 });
