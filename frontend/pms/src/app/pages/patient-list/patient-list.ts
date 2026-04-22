@@ -17,6 +17,8 @@ export class PatientList implements OnInit {
   isEditing = signal<boolean>(false);
   isSaving = signal<boolean>(false);
 
+  generatedInviteUrl = signal<string>('');
+
   searchTerm: string = '';
   currentPatient: Patient = this.getEmptyPatient();
 
@@ -55,14 +57,13 @@ export class PatientList implements OnInit {
   }
 
   openEditModal(patient: Patient): void {
-    this.isEditing.set(true);
-    this.currentPatient = { ...patient };
-    
-    if (this.currentPatient.dateOfBirth) {
-      this.currentPatient.dateOfBirth = this.currentPatient.dateOfBirth.split('T')[0];
-    }
-    
-    this.showModal.set(true);
+      this.isEditing.set(true);
+      this.generatedInviteUrl.set('');
+      this.currentPatient = { ...patient };
+      if (this.currentPatient.dateOfBirth) {
+        this.currentPatient.dateOfBirth = this.currentPatient.dateOfBirth.split('T')[0];
+      }
+      this.showModal.set(true);
   }
 
   closeModal(): void {
@@ -101,7 +102,7 @@ export class PatientList implements OnInit {
       this.patientService.createPatient(this.currentPatient)
         .pipe(
           finalize(() => {
-             this.isSaving.set(false); // Signal reseting automatically after completion
+             this.isSaving.set(false);
           })
         ) 
         .subscribe({
@@ -124,6 +125,26 @@ export class PatientList implements OnInit {
         error: (err) => console.error('Error deleting patient', err)
       });
     }
+  }
+
+  generateInvite(patientId?: number): void {
+    if (!patientId) return;
+    this.patientService.generateInviteLink(patientId).subscribe({
+      next: (response) => {
+        this.generatedInviteUrl.set(response.url);
+      },
+      error: (err) => alert('Error al generar el enlace.')
+    });
+  }
+
+  closeInviteModal(): void {
+    this.generatedInviteUrl.set('');
+  }
+
+  copyToClipboard(): void {
+    navigator.clipboard.writeText(this.generatedInviteUrl()).then(() => {
+      alert('Link copied to clipboard');
+    });
   }
 
   private getEmptyPatient(): Patient {

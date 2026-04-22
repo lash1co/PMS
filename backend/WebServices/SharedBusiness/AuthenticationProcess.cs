@@ -108,7 +108,7 @@ namespace WebServices.SharedBusiness
                     return new AuthorizationRequest
                     {
                         tokenIsValid = false,
-                        message = "User is disabled, pleae contact an Admin user to enable him."
+                        message = "User is disabled, please contact an Admin user to enable him."
                     };
                 }
 
@@ -158,6 +158,60 @@ namespace WebServices.SharedBusiness
             }
 
             return null;
+        }
+        public (string Token, string Jti) GeneratePatientInvitationToken(int patientId, string jwtKey, string issuer)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            string jti = Guid.NewGuid().ToString();
+
+            var claims = new[] {
+                new Claim("PatientId", patientId.ToString()),
+                new Claim("Purpose", "PatientInvite"),
+            new Claim(JwtRegisteredClaimNames.Jti, jti) 
+            };
+
+            var token = new JwtSecurityToken(issuer, issuer, claims,
+                expires: DateTime.Now.AddHours(24),
+                signingCredentials: credentials);
+
+            return (new JwtSecurityTokenHandler().WriteToken(token), jti);
+        }
+
+        public (int? PatientId, string? Jti) ValidatePatientInvitationToken(string token, string jwtKey, string issuer)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(jwtKey);
+
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = issuer,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+
+                var purpose = jwtToken.Claims.First(x => x.Type == "Purpose").Value;
+                if (purpose != "PatientInvite") return (null, null);
+
+                var patientIdStr = jwtToken.Claims.First(x => x.Type == "PatientId").Value;
+                var jti = jwtToken.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti)?.Value;
+
+                return (int.Parse(patientIdStr), jti);
+            }
+            catch
+            {
+                return (null, null);
+            }
         }
     }
 }

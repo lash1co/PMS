@@ -25,7 +25,7 @@
           (click)="openCreateModal()"
           class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition whitespace-nowrap"
         >
-          + New Patient
+          + Pre-Register Patient
         </button>
       </div>
     </div>
@@ -50,6 +50,8 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ patient.phone }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ patient.email || 'N/A' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button (click)="generateInvite(patient.id)" class="text-green-600 hover:text-green-900 mr-4 font-semibold" title="Generate Invite Link">Link</button>
+              
               <button (click)="openEditModal(patient)" class="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
               <button (click)="deletePatient(patient.id)" class="text-red-600 hover:text-red-900">Delete</button>
             </td>
@@ -62,8 +64,8 @@
     </div>
   </div>
 
-  <div *ngIf="showModal()" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-gray-500 bg-opacity-75 transition-opacity">
-    <div class="bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full m-4">
+  <div *ngIf="showModal()" class="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-gray-500 bg-opacity-75 transition-opacity">
+     <div class="bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full m-4">
       <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
         <h3 class="text-lg font-medium text-gray-900 mb-4">
           {{ isEditing() ? 'Edit Patient' : 'Add New Patient' }}
@@ -96,6 +98,25 @@
       </div>
 
       <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+        <div *ngIf="isEditing()" class="px-4 py-4 sm:px-6 bg-blue-50 border-t border-b border-blue-100">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="text-sm font-semibold text-blue-800 flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+            Patient Invitation Link
+          </h4>
+          <button *ngIf="!generatedInviteUrl()" (click)="generateInvite(currentPatient.id)" class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">
+            Generate Link
+          </button>
+        </div>
+        
+        <div *ngIf="generatedInviteUrl()" class="flex items-center space-x-2 mt-2">
+          <input type="text" readonly [value]="generatedInviteUrl()" class="w-full text-xs border border-blue-200 rounded py-1 px-2 bg-white text-gray-600 focus:outline-none">
+          <button (click)="copyToClipboard()" class="text-xs bg-gray-200 text-gray-700 font-medium px-3 py-1 rounded hover:bg-gray-300 transition whitespace-nowrap">
+            Copy
+          </button>
+        </div>
+        <p *ngIf="!generatedInviteUrl()" class="text-xs text-blue-600">Generate a unique link to let the patient complete their registration remotely.</p>
+      </div>
         
         <button 
           type="button" 
