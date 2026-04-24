@@ -28,6 +28,11 @@ export const menu_config = [
         id: '2.1',
         label: 'Appointments',
         urlRoute: '#'
+      },
+      {
+        id: '2.2',
+        label: 'Schedule (Agenda)',
+        urlRoute: '/schedule'
       }
     ]
   }

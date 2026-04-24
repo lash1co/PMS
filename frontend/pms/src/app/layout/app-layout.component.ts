@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../services/auth/auth.service';
 
 @Component({
   selector: 'app-layout',
@@ -16,19 +16,25 @@ import { AuthService } from '../services/auth.service';
         </div>
 
         <nav class="flex-1 px-4 py-6 space-y-2">
-          <a routerLink="/users" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
-             class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
-             <span class="font-medium">Users Management</span>
-          </a>
 
           <a routerLink="/dashboard" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
              class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
              <span class="font-medium">Dashboard</span>
           </a>
 
+          <a routerLink="/users" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
+             class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
+             <span class="font-medium">Users Management</span>
+          </a>
+
           <a routerLink="/patients" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
              class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
-             <span class="font-medium">Patients</span>
+             <span class="font-medium">Patients Management</span>
+          </a>
+
+          <a routerLink="/schedule" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
+             class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
+             <span class="font-medium">Schedule</span>
           </a>
         </nav>
 
