@@ -1,3 +1,4 @@
+import { Insurance } from './insurance.model';
 export interface Patient {
   id?: number;
   firstName: string;
@@ -6,4 +7,5 @@ export interface Patient {
   phone: string;
   email?: string;
   createdAt?: string;
+  insurances?: Insurance[];
 }

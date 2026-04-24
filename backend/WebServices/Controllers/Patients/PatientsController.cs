@@ -8,9 +8,26 @@ using Domain.Exceptions;
 namespace WebServices.Controllers.Patients
 {
     /// <summary>
+    /// Represents the data required to create or update a patient's insurance information.
+    /// </summary>
+    /// <param name="Id">The unique identifier of the insurance record.</param>
+    /// <param name="PayerName">The name of the insurance payer.</param>
+    /// <param name="MemberId">The member ID associated with the insurance.</param>
+    /// <param name="PlanType">The type of insurance plan.</param>
+    /// <param name="RelationshipToSubscriber">The relationship of the insured to the subscriber.</param>
+    /// <param name="IsPrimary">Indicates if this is the primary insurance.</param>
+    public record InsuranceRequestRecord(int? Id, string PayerName, string MemberId, string? PlanType, string RelationshipToSubscriber, bool IsPrimary);
+    /// <summary>
     /// Represents the data required to create or update a patient.
     /// </summary>
-    public record PatientRequestRecord(string FirstName, string LastName, DateTime DateOfBirth, string Phone, string? Email);
+    public record PatientRequestRecord(
+        string FirstName,
+        string LastName,
+        DateTime DateOfBirth,
+        string Phone,
+        string? Email,
+        List<InsuranceRequestRecord>? Insurances
+    );
 
     /// <summary>
     /// Represents the patient data returned to the client.
@@ -22,7 +39,7 @@ namespace WebServices.Controllers.Patients
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize] // Descomentar si el CRUD básico de pacientes requiere autenticación
+    // [Authorize] // Uncomment if authentication is required for patient management
     public class PatientsController : ControllerBase
     {
         private readonly DatabaseContext _dbContext;
@@ -46,7 +63,9 @@ namespace WebServices.Controllers.Patients
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
         {
-            return await _dbContext.DBPatients.ToListAsync();
+            return await _dbContext.DBPatients
+                .Include(p => p.Insurances)
+                .ToListAsync();
         }
 
         /// <summary>
@@ -58,6 +77,7 @@ namespace WebServices.Controllers.Patients
         public async Task<ActionResult<Patient>> GetPatient(int id)
         {
             var patient = await _dbContext.DBPatients
+                .Include(p => p.Insurances)
                 .Include(p => p.Invoices)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -80,12 +100,16 @@ namespace WebServices.Controllers.Patients
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                return await _dbContext.DBPatients.ToListAsync();
+                return await _dbContext.DBPatients
+                    .Include(p => p.Insurances)
+                    .ToListAsync();
             }
 
             string collation = "SQL_Latin1_General_CP1_CI_AI";
 
-            var query = _dbContext.DBPatients.AsQueryable();
+            var query = _dbContext.DBPatients
+                .Include(p => p.Insurances)
+                .AsQueryable();
 
             var terms = searchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
@@ -144,20 +168,19 @@ namespace WebServices.Controllers.Patients
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePatient(int id, [FromBody] PatientRequestRecord request)
         {
-            var patientEntity = await _dbContext.DBPatients.FindAsync(id);
+            var patientEntity = await _dbContext.DBPatients
+                .Include(p => p.Insurances)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (patientEntity == null) return NotFound(new { message = "Patient not found." });
 
             try
             {
-                _patientProcess.UpdateDetails(patientEntity, request.FirstName, request.LastName, request.DateOfBirth, request.Phone, request.Email);
+                _patientProcess.UpdateFullDetails(patientEntity, request);
+
                 await _dbContext.SaveChangesAsync();
 
-                var response = new PatientResponseRecord(
-                    patientEntity.Id, patientEntity.FirstName, patientEntity.LastName,
-                    patientEntity.DateOfBirth, patientEntity.Phone, patientEntity.Email, patientEntity.CreatedAt
-                );
-
-                return Ok(response);
+                return Ok(new { message = "Patient and Insurances updated successfully." });
             }
             catch (DomainException ex)
             {

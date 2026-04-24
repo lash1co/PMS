@@ -1,14 +1,15 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PatientService } from '../../services/patient.service';
+import { PatientService } from '../../services/patient/patient.service';
 import { Patient } from '../../models/patient.model';
 import { finalize } from 'rxjs/operators';
+import { MatButtonModule } from "@angular/material/button";
 
 @Component({
   selector: 'app-patient-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatButtonModule],
   templateUrl: './patient-list.html'
 })
 export class PatientList implements OnInit {
@@ -16,6 +17,8 @@ export class PatientList implements OnInit {
   showModal = signal<boolean>(false);
   isEditing = signal<boolean>(false);
   isSaving = signal<boolean>(false);
+
+  activeTab = signal<'form' | 'summary'>('form');
 
   generatedInviteUrl = signal<string>('');
 
@@ -53,6 +56,7 @@ export class PatientList implements OnInit {
   openCreateModal(): void {
     this.isEditing.set(false);
     this.currentPatient = this.getEmptyPatient();
+    this.activeTab.set('form'); 
     this.showModal.set(true);
   }
 
@@ -63,6 +67,7 @@ export class PatientList implements OnInit {
       if (this.currentPatient.dateOfBirth) {
         this.currentPatient.dateOfBirth = this.currentPatient.dateOfBirth.split('T')[0];
       }
+      this.activeTab.set('summary'); 
       this.showModal.set(true);
   }
 
@@ -149,5 +154,22 @@ export class PatientList implements OnInit {
 
   private getEmptyPatient(): Patient {
     return { firstName: '', lastName: '', dateOfBirth: '', phone: '', email: '' };
+  }
+
+  addInsurance(): void {
+  if (!this.currentPatient.insurances) {
+    this.currentPatient.insurances = [];
+  }
+    this.currentPatient.insurances.push({
+      payerName: '',
+      memberId: '',
+      planType: '',
+      relationshipToSubscriber: 'Self',
+      isPrimary: this.currentPatient.insurances.length === 0
+    });
+  }
+
+  removeInsurance(index: number): void {
+    this.currentPatient.insurances?.splice(index, 1);
   }
 }
