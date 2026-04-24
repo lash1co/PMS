@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebServices.DataAccess;
 
@@ -11,9 +12,11 @@ using WebServices.DataAccess;
 namespace WebServices.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260423035427_AddDoctorSeedData")]
+    partial class AddDoctorSeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,7 +82,7 @@ namespace WebServices.Migrations
                         new
                         {
                             Id = 1,
-                            Name = "Aurelio"
+                            Name = "Dr. Aurelio"
                         });
                 });
 
@@ -94,15 +97,15 @@ namespace WebServices.Migrations
                     b.Property<int>("DoctorId")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("time");
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("time");
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -115,9 +118,9 @@ namespace WebServices.Migrations
                         {
                             Id = 1,
                             DoctorId = 1,
-                            EndTime = new TimeSpan(0, 15, 0, 0, 0),
-                            Reason = "Lunch Break",
-                            StartTime = new TimeSpan(0, 14, 0, 0, 0)
+                            EndTime = new DateTime(2026, 4, 22, 15, 0, 0, 0, DateTimeKind.Unspecified),
+                            Reason = "Break",
+                            StartTime = new DateTime(2026, 4, 22, 14, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -396,7 +399,7 @@ namespace WebServices.Migrations
 
                     b.ToTable("DBScheduleViews");
 
-                    b.ToSqlQuery("SELECT 'Appointment' AS Type,a.Id,CAST(a.StartTime AS Date) AS Date,a.StartTime,a.EndTime,a.Status AS ScheduleStatus,a.Reason AS ScheduleDescription,a.DoctorId,d.Name AS DoctorName,a.PatientId,p.FirstName + ' ' + p.LastName AS PatientName FROM DBAppointments a JOIN DBDoctors d ON a.DoctorId = d.Id JOIN DBPatients p ON a.PatientId = p.Id");
+                    b.ToSqlQuery("SELECT 'Appointment' AS Type,a.Id,CAST(a.StartTime AS Date) AS Date,a.StartTime,a.EndTime,a.Status AS ScheduleStatus,a.Reason AS ScheduleDescription,a.DoctorId,d.Name AS DoctorName,a.PatientId,p.Name AS PatientName FROM DBAppointments a JOIN DBDoctors d ON a.DoctorId = d.Id JOIN DBPatients p ON a.PatientId = p.Id UNION SELECT 'Rest',dr.Id,CAST(dr.StartTime AS Date),dr.StartTime,dr.EndTime,dr.DoctorId,d.Name AS DoctorName NULL,NULL FROM DBDoctorRestSchedules dr JOIN DBDoctors d ON dr.DoctorId = d.Id");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -466,7 +469,7 @@ namespace WebServices.Migrations
                             CreationDate = new DateTime(2026, 4, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "doctorPMS@unosquare.com",
                             IsActive = true,
-                            Name = "PMS Doctor",
+                            Name = "Dr. PMS Doctor",
                             Password = "387D800C0CC82412028CE6435ABC708A52C075D8ED8F9854FBE24691B5E46D8C",
                             Role = "DOCTOR",
                             UserName = "doctor"

@@ -73,8 +73,52 @@ namespace WebServices.DataAccess
                         Password = "387D800C0CC82412028CE6435ABC708A52C075D8ED8F9854FBE24691B5E46D8C", // Control123 (HEX codification)
                         CreationDate = new DateTime(2026, 4, 9),
                         Role = UserConstants.RoleConstants.PatientRole,
+                    },
+                    new User
+                    {
+                        Id = -3, 
+                        Name = "PMS Doctor",
+                        Email = "doctorPMS@unosquare.com",
+                        IsActive = true,
+                        UserName = "doctor",
+                        Password = "387D800C0CC82412028CE6435ABC708A52C075D8ED8F9854FBE24691B5E46D8C", // Control123 (HEX codification)
+                        CreationDate = new DateTime(2026, 4, 9),
+                        Role = UserConstants.RoleConstants.DoctorRole,
                     }
                 );
+
+            modelBuilder.Entity<Doctor>()
+                .HasData(
+                new Doctor
+                {
+                    Id = 1,
+                    Name = "Aurelio"
+                }
+            );
+
+            /*modelBuilder.Entity<DoctorRestSchedule>()
+                .HasData(
+                new
+                {
+                    Id = 1,
+                    DoctorId = 1,
+                    StartTime = new DateTime(2026, 4, 22, 14, 0, 0), 
+                    EndTime = new DateTime(2026, 4, 22, 15, 0, 0),
+                    Reason = "Break"
+                }
+            );*/
+
+            modelBuilder.Entity<DoctorRestSchedule>()
+            .HasData(
+                new
+                {
+                    Id = 1,
+                    DoctorId = 1,
+                    StartTime = new TimeSpan(14, 0, 0), 
+                    EndTime = new TimeSpan(15, 0, 0),   
+                    Reason = "Lunch Break"
+                }
+            );
 
             modelBuilder.Entity<Patient>()
                 .HasKey(p => p.Id);
@@ -135,6 +179,7 @@ namespace WebServices.DataAccess
                 .HasOne(dr => dr.Doctor)
                 .WithMany(d => d.DoctorRestSchedules);
 
+            /*
             modelBuilder.Entity<ScheduleView>(sv =>
             {
                 sv.HasNoKey();
@@ -148,22 +193,43 @@ namespace WebServices.DataAccess
                     "a.DoctorId," +
                     "d.Name AS DoctorName," +
                     "a.PatientId," +
-                    "p.Name AS PatientName " +
+                    "p.FirstName + ' ' + p.LastName AS PatientName " +
                     "FROM DBAppointments a " +
                     "JOIN DBDoctors d ON a.DoctorId = d.Id " +
                     "JOIN DBPatients p ON a.PatientId = p.Id " +
                     "UNION " +
-                    "SELECT 'Rest'," +
+                    "SELECT 'Rest' AS Type," +
                     "dr.Id," +
-                    "CAST(dr.StartTime AS Date)," +
+                    "CAST(dr.StartTime AS Date) AS Date," +
                     "dr.StartTime," +
                     "dr.EndTime," +
+                    "'' AS ScheduleStatus," +
+                    "dr.Reason AS ScheduleDescription," +
                     "dr.DoctorId," +
-                    "d.Name AS DoctorName " +
-                    "NULL," +
-                    "NULL " +
+                    "d.Name AS DoctorName," +
+                    "NULL AS PatientId," +
+                    "NULL AS PatientName " +
                     "FROM DBDoctorRestSchedules dr " +
                     "JOIN DBDoctors d ON dr.DoctorId = d.Id");
+            });
+            */
+            modelBuilder.Entity<ScheduleView>(sv =>
+            {
+                sv.HasNoKey();
+                sv.ToSqlQuery<ScheduleView>("SELECT 'Appointment' AS Type," +
+                    "a.Id," +
+                    "CAST(a.StartTime AS Date) AS Date," +
+                    "a.StartTime," +
+                    "a.EndTime," +
+                    "a.Status AS ScheduleStatus," +
+                    "a.Reason AS ScheduleDescription," +
+                    "a.DoctorId," +
+                    "d.Name AS DoctorName," +
+                    "a.PatientId," +
+                    "p.FirstName + ' ' + p.LastName AS PatientName " +
+                    "FROM DBAppointments a " +
+                    "JOIN DBDoctors d ON a.DoctorId = d.Id " +
+                    "JOIN DBPatients p ON a.PatientId = p.Id");
             });
 
             modelBuilder.Entity<Insurance>()

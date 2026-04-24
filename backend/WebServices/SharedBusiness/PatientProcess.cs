@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using System;
 using System.Globalization;
 using System.Numerics;
+using WebServices.Controllers.Patients;
 
 namespace WebServices.SharedBusiness
 {
@@ -90,6 +91,41 @@ namespace WebServices.SharedBusiness
             patient.Insurances.Add(insurance);
 
             return insurance;
+        }
+
+        public void UpdateFullDetails(Patient patient, PatientRequestRecord request)
+        {
+            UpdateDetails(patient, request.FirstName, request.LastName, request.DateOfBirth, request.Phone, request.Email);
+
+            if (request.Insurances == null) return;
+
+            if (patient.Insurances == null) patient.Insurances = new List<Insurance>();
+
+            foreach (var insReq in request.Insurances)
+            {
+                var existingIns = patient.Insurances.FirstOrDefault(i => i.Id == insReq.Id && insReq.Id > 0);
+
+                if (existingIns != null)
+                {
+                    existingIns.PayerName = insReq.PayerName;
+                    existingIns.MemberId = insReq.MemberId;
+                    existingIns.PlanType = insReq.PlanType ?? string.Empty;
+                    existingIns.RelationshipToSubscriber = insReq.RelationshipToSubscriber;
+                    existingIns.IsPrimary = insReq.IsPrimary;
+                }
+                else
+                {
+                    patient.Insurances.Add(new Insurance
+                    {
+                        PayerName = insReq.PayerName,
+                        MemberId = insReq.MemberId,
+                        PlanType = insReq.PlanType ?? string.Empty,
+                        RelationshipToSubscriber = insReq.RelationshipToSubscriber,
+                        IsPrimary = insReq.IsPrimary,
+                        PatientId = patient.Id
+                    });
+                }
+            }
         }
     }
 }
