@@ -40,5 +40,9 @@
         /// The patient for whom this prescription has been written.
         /// </summary>
         public Patient Patient { get; set; } = default!;
+
+        // Encounter FK
+        public int? EncounterId { get; set; }
+        public Encounter? Encounter { get; set; }
     }
 }
