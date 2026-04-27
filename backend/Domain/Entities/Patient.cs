@@ -49,10 +49,9 @@ namespace Domain.Entities
         // Navigation Properties
 
         /// <summary>
-        /// Collection of medical records associated with the patient.
+        /// Collection of  medical encounters associated with the patient.
         /// </summary>
-        public ICollection<MedicalRecord>? MedicalRecords { get; set; }
-
+        public ICollection<Encounter>? Encounters { get; set; }
         /// <summary>
         /// Collection of prescriptions issued to the patient.
         /// </summary>
