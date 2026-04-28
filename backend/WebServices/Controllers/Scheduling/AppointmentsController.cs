@@ -3,6 +3,7 @@ using Domain.Filters;
 using Domain.SharedConstants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using WebServices.DataAccess;
 using WebServices.Repositories;
 using WebServices.SharedBusiness;
@@ -55,8 +56,12 @@ namespace WebServices.Controllers.Scheduling
         [Authorize]
         public async Task<ActionResult<List<ScheduleView>>> GetAppointments([FromBody] ScheduleFilter filter)
         {
-            var authResult = await ValidateAuthorizationAsync();
-            if (authResult != null) return authResult;
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            if (!authResult.Value.tokenIsValid)
+            {
+                return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
+            }
 
             var results = await _scheduleProcess.GetFilteredAppointmentsAsync(filter);
             return Ok(results);
@@ -147,8 +152,12 @@ namespace WebServices.Controllers.Scheduling
         [HttpPost]
         public async Task<ActionResult<UpsertRequest>> CreateRestTime([FromBody] DoctorRestSchedule doctorRestSchedule)
         {
-            var authResult = await ValidateAuthorizationAsync();
-            if (authResult != null) return authResult;
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            if (!authResult.Value.tokenIsValid)
+            {
+                return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
+            }
 
             var doctorRestSchedulingRepository = new DoctorRestSchedulingRepository(_context);
             var createProcessResult = await doctorRestSchedulingRepository.CreateDoctorRestSchedule(doctorRestSchedule);
