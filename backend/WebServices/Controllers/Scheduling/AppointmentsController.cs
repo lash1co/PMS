@@ -147,31 +147,6 @@ namespace WebServices.Controllers.Scheduling
             }
         }
 
-        // POST: AppointmentsController/CreateRestTime
-        [Authorize]
-        [HttpPost]
-        public async Task<ActionResult<UpsertRequest>> CreateRestTime([FromBody] DoctorRestSchedule doctorRestSchedule)
-        {
-            var validationProcess = new TokenValidationProcess(_config, _context);
-            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
-            if (!authResult.Value.tokenIsValid)
-            {
-                return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
-            }
-
-            var doctorRestSchedulingRepository = new DoctorRestSchedulingRepository(_context);
-            var createProcessResult = await doctorRestSchedulingRepository.CreateDoctorRestSchedule(doctorRestSchedule);
-            if (!createProcessResult.UpsertSuccessfull)
-            {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    createProcessResult.Message
-                );
-            }
-
-            return Ok(createProcessResult);
-        }
-
         /// <summary>
         /// Deletes an existing appointment. (Pending full implementation).
         /// </summary>
