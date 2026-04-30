@@ -76,6 +76,8 @@ namespace WebServices.DataAccess
         /// <summary>Medication prescriptions issued by a doctor to a patient.</summary>
         public DbSet<Prescriptions> DBPrescriptions { get; set; }
 
+        public DbSet<PrescriptionMedication> PrescriptionMedications { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
@@ -318,6 +320,16 @@ namespace WebServices.DataAccess
                 .WithMany(e => e.Prescriptions)
                 .HasForeignKey(p => p.EncounterId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            //medications prescricions
+            modelBuilder.Entity<PrescriptionMedication>()
+                .HasKey(pm => pm.Id);
+
+            modelBuilder.Entity<PrescriptionMedication>()
+                .HasOne(pm => pm.Prescription)
+                .WithMany(p => p.Medications)
+                .HasForeignKey(pm => pm.PrescriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
