@@ -54,8 +54,9 @@ export class UsersList implements OnInit {
   }
 
   openEditModal(user: UserInterface): void {
+  
     this.isEditing.set(true);
-    this.currentUser = { ...user };
+    this.currentUser = { ...user }; 
     this.showModal.set(true);
   }
 
@@ -77,10 +78,21 @@ export class UsersList implements OnInit {
     this.showModal.set(false);
   }
 
+  
   deleteUser(id?: number): void {
-    if (id && confirm('Are you sure to remove this user? This action cannot be undone.')) {
+  if (!id) return;
+
+  if (!confirm('Are you sure to remove this user?')) return;
+
+  this.userService.deleteUser(id).subscribe({
+    next: () => {
+      this.loadUsers();
       alert(`User with ID ${id} deleted successfully!`);
-      // TODO: Call userService.deleteUser(id).subscribe(() => this.loadUsers())
+    },
+    error: (err) => {
+      alert('Error deleting user: ' + err.message);
     }
-  }
+  });
+ }
+  
 }

@@ -76,6 +76,8 @@ namespace WebServices.DataAccess
         /// <summary>Medication prescriptions issued by a doctor to a patient.</summary>
         public DbSet<Prescriptions> DBPrescriptions { get; set; }
 
+        public DbSet<PrescriptionMedication> PrescriptionMedications { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
@@ -132,8 +134,18 @@ namespace WebServices.DataAccess
             modelBuilder.Entity<Doctor>().HasKey(p => p.Id);
             modelBuilder.Entity<Doctor>().Property(d => d.Id).ValueGeneratedOnAdd();
             modelBuilder.Entity<Doctor>().HasData(
-                new Doctor { Id = 1, Name = "Aurelio" }
+                new Doctor
+                {
+                    Id = 1,
+                    Name = "Aurelio",
+                    UserId = -3 
+                }
             );
+            modelBuilder.Entity<Doctor>()
+                .HasOne(d => d.User)
+                .WithOne(u => u.Doctor)
+                .HasForeignKey<Doctor>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // =========================================================
             // INVOICES & INSURANCE CONFIGURATION
@@ -270,6 +282,16 @@ namespace WebServices.DataAccess
                 .WithMany(e => e.Prescriptions)
                 .HasForeignKey(p => p.EncounterId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            //medications prescricions
+            modelBuilder.Entity<PrescriptionMedication>()
+                .HasKey(pm => pm.Id);
+
+            modelBuilder.Entity<PrescriptionMedication>()
+                .HasOne(pm => pm.Prescription)
+                .WithMany(p => p.Medications)
+                .HasForeignKey(pm => pm.PrescriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

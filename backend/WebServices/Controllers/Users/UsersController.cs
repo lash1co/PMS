@@ -217,5 +217,51 @@ namespace WebServices.Controllers.Users
 
             return Ok(processResult);
         }
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var authorizationHeader = Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(authorizationHeader))
+            {
+                return Unauthorized("Invalid authorization token.");
+            }
+
+            var validation = new TokenRoleValidator(_context);
+
+            var validationResult = await validation.ValidateTokenAndGetRole(
+                authorizationHeader,
+                _config["Jwt:Key"],
+                _config["Jwt:Issuer"]);
+
+            if (!validationResult.tokenIsValid)
+            {
+                return Unauthorized(new
+                {
+                    Message = validationResult.message
+                });
+            }
+
+            if (validationResult.role != UserConstants.RoleConstants.AdminRole)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    validationResult.role + " does not have permission."
+                );
+            }
+
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "User deleted successfully" });
+        }
     }
 }
