@@ -31,6 +31,6 @@
         public int DoctorId { get; set; }
 
         // Navigation property into Doctor's entity
-        public Doctor Doctor { get; set; } = new Doctor();
+        public Doctor? Doctor { get; set; }
     }
 }
