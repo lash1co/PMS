@@ -132,8 +132,18 @@ namespace WebServices.DataAccess
             modelBuilder.Entity<Doctor>().HasKey(p => p.Id);
             modelBuilder.Entity<Doctor>().Property(d => d.Id).ValueGeneratedOnAdd();
             modelBuilder.Entity<Doctor>().HasData(
-                new Doctor { Id = 1, Name = "Aurelio" }
+                new Doctor
+                {
+                    Id = 1,
+                    Name = "Aurelio",
+                    UserId = -3 
+                }
             );
+            modelBuilder.Entity<Doctor>()
+                .HasOne(d => d.User)
+                .WithOne(u => u.Doctor)
+                .HasForeignKey<Doctor>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // =========================================================
             // INVOICES & INSURANCE CONFIGURATION

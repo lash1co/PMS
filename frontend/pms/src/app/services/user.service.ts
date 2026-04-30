@@ -25,4 +25,19 @@ export class UserService {
       }
     });
   }
+  updateUser(user: UserInterface) {
+    return this.http.put(this.apiUrl, user, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('pms_token')}`
+      }
+    });
+  }
+
+  deleteUser(id: number) {
+    return this.http.delete(`${this.apiUrl}/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('pms_token')}`
+      }
+    });
+  }
 }

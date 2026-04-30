@@ -47,5 +47,7 @@
         /// Gets or sets User's role definition for the application
         /// </summary>
         public string Role { get; set; }
+
+        public Doctor? Doctor { get; set; }
     }
 }

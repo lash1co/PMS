@@ -50,6 +50,7 @@
   @if (showModal()){
     <app-user-modal
       [user]="currentUser"
+      [isEditing]="isEditing()"
       (save)="saveUser($event)"
       (close)="closeModal()"
     ></app-user-modal>
