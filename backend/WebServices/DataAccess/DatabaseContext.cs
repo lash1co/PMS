@@ -200,44 +200,6 @@ namespace WebServices.DataAccess
                 }
             );
 
-            /* * LEGACY SQL VIEW: ScheduleView combining Appointments and Rests via UNION.
-             * Replaced because handling recurring TimeSpan rests dynamically in C# business 
-             * logic (ScheduleProcess) is more scalable than complex SQL UNIONS.
-             *
-            modelBuilder.Entity<ScheduleView>(sv =>
-            {
-                sv.HasNoKey();
-                sv.ToSqlQuery<ScheduleView>("SELECT 'Appointment' AS Type," +
-                    "a.Id," +
-                    "CAST(a.StartTime AS Date) AS Date," +
-                    "a.StartTime," +
-                    "a.EndTime," +
-                    "a.Status AS ScheduleStatus," +
-                    "a.Reason AS ScheduleDescription," +
-                    "a.DoctorId," +
-                    "d.Name AS DoctorName," +
-                    "a.PatientId," +
-                    "p.FirstName + ' ' + p.LastName AS PatientName " +
-                    "FROM DBAppointments a " +
-                    "JOIN DBDoctors d ON a.DoctorId = d.Id " +
-                    "JOIN DBPatients p ON a.PatientId = p.Id " +
-                    "UNION " +
-                    "SELECT 'Rest' AS Type," +
-                    "dr.Id," +
-                    "CAST(dr.StartTime AS Date) AS Date," +
-                    "dr.StartTime," +
-                    "dr.EndTime," +
-                    "'' AS ScheduleStatus," +
-                    "dr.Reason AS ScheduleDescription," +
-                    "dr.DoctorId," +
-                    "d.Name AS DoctorName," +
-                    "NULL AS PatientId," +
-                    "NULL AS PatientName " +
-                    "FROM DBDoctorRestSchedules dr " +
-                    "JOIN DBDoctors d ON dr.DoctorId = d.Id");
-            });
-            */
-
             modelBuilder.Entity<ScheduleView>(sv =>
             {
                 sv.HasNoKey();
