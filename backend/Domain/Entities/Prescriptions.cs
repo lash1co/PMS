@@ -14,18 +14,7 @@
         /// <summary>
         /// The medication prescribed to the patient (for example, the drug name).
         /// </summary>
-        public string Medication { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Dosage instructions for the medication (for example "500 mg, twice daily").
-        /// </summary>
-        public string Dosage { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Number of refills authorized for this prescription, if any.
-        /// </summary>
-        public int Refils { get; set; }
-
+        public ICollection<PrescriptionMedication> Medications { get; set; } = new List<PrescriptionMedication>();
         /// <summary>
         /// The date the prescription was issued.
         /// </summary>

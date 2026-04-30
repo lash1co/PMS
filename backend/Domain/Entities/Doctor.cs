@@ -15,6 +15,8 @@
         /// The full name of the doctor.
         /// </summary>
         public string Name { get; set; } = string.Empty;
+        public int UserId { get; set; }
+        public User User { get; set; } = null!;
 
         /// <summary>
         /// Collection of appointments associated with the doctor. May be null if
