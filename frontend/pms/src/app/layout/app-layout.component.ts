@@ -37,9 +37,14 @@ import { AuthService } from '../services/auth/auth.service';
              <span class="font-medium">Schedule</span>
           </a>
 
-          <a routerLink="/schedule/doctor-rest-time" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
+          <a routerLink="doctor-rest-time" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
              class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
              <span class="font-medium">Doctor Rest Time</span>
+          </a>
+
+          <a routerLink="/encounters" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
+             class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
+             <span class="font-medium">Encounters</span>
           </a>
         </nav>
 
