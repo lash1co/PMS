@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using WebServices.DataAccess;
 using WebServices.SharedBusiness;
 
-namespace WebServices.Controllers
+namespace WebServices.Encounters
 {
     [Route("api/[controller]")]
     [ApiController]

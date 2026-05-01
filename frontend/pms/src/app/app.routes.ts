@@ -5,6 +5,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PatientList } from './pages/patient-list/patient-list';
 import { authGuard } from './guards/auth.guard';
 import { DoctorRestTimeFormComponent } from './pages/doctor-rest-time-form.component/doctor-rest-time-form.component';
+import { EncounterComponent } from './pages/encounter/encounter.component';
 import { PatientRegistrationComponent } from './pages/patient-registration/patient-registration.component';
 import { UsersList } from './pages/users-list/users-list';
 import { ScheduleComponent } from './pages/schedule/schedule.component';
@@ -27,7 +28,8 @@ export const routes: Routes = [
       { path: 'patients', component: PatientList },
       { path: 'users', component: UsersList },
       { path: 'schedule', component: ScheduleComponent },
-      { path: 'schedule/doctor-rest-time', component: DoctorRestTimeFormComponent }
+      { path: 'doctor-rest-time', component: DoctorRestTimeFormComponent },
+      { path: 'encounters', component: EncounterComponent }
     ]
   },
 
