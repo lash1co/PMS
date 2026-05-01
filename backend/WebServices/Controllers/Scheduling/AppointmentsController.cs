@@ -17,7 +17,6 @@ namespace WebServices.Controllers.Scheduling
     public record AppointmentRequestRecord(
         DateTime StartTime,
         DateTime EndTime,
-        string Status,
         string Reason,
         int DoctorId,
         int PatientId
@@ -111,7 +110,6 @@ namespace WebServices.Controllers.Scheduling
             {
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
-                Status = request.Status,
                 Reason = request.Reason,
                 Doctor = new Doctor { Id = request.DoctorId },
                 Patient = new Patient { Id = request.PatientId }

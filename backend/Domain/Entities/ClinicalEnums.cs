@@ -50,4 +50,17 @@ namespace Domain.Entities
         High,
         UnableToAssess
     }
+
+    /// <summary>
+    /// Represents the current status of a scheduled appointment between a patient and a healthcare provider.
+    /// </summary>
+    public enum AppointmentStatus
+    {
+        Planned,
+        Arrived,
+        InProgress,
+        Finished,
+        Cancelled,
+        EnteredInError
+    }
 }

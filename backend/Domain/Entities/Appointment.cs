@@ -22,10 +22,9 @@
         public DateTime EndTime { get; set; }
 
         /// <summary>
-        /// Current status of the appointment (for example "Scheduled", "Completed",
-        /// "Cancelled" or "NoShow").
+        /// Current status of the appointment (e.g., Planned, Arrived, InProgress, Finished, Cancelled, EnteredInError).
         /// </summary>
-        public string Status { get; set; } = string.Empty;
+        public AppointmentStatus Status { get; set; } = AppointmentStatus.Planned;
 
         /// <summary>
         /// The reason for the appointment or a short description of the visit.

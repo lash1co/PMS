@@ -95,7 +95,6 @@ export class AppointmentFormComponent {
     const newAppointment = {
       startTime: startDateTime,
       endTime: endDateTime,
-      status: 'Scheduled',
       reason: this.reason(),
       doctor: { id: this.data.doctorId },
       patient: { id: this.patientId() }
@@ -108,7 +107,7 @@ export class AppointmentFormComponent {
       },
       error: (err) => {
         console.error(err);
-        this.errorMessage.set('Hubo un error al guardar la cita. Verifica que el ID del paciente exista.');
+        this.errorMessage.set('Error saving appointment. Check existence of patient ID and try again.');
         this.isSaving.set(false);
       }
     });
