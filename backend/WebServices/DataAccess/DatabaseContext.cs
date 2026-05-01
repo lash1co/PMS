@@ -240,6 +240,7 @@ namespace WebServices.DataAccess
             modelBuilder.Entity<Procedure>().Property(p => p.Status).HasConversion<string>();
             modelBuilder.Entity<Condition>().Property(c => c.ClinicalStatus).HasConversion<string>();
             modelBuilder.Entity<AllergyIntolerance>().Property(a => a.Criticality).HasConversion<string>();
+            modelBuilder.Entity<Appointment>().Property(a => a.Status).HasConversion<string>();
 
             // 2. Decimal Precision (Prevents data loss warnings)
             modelBuilder.Entity<ClinicalObservation>()
