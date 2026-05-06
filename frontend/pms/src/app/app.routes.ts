@@ -9,6 +9,7 @@ import { EncounterComponent } from './pages/encounter/encounter.component';
 import { PatientRegistrationComponent } from './pages/patient-registration/patient-registration.component';
 import { UsersList } from './pages/users-list/users-list';
 import { ScheduleComponent } from './pages/schedule/schedule.component';
+import {PrescriptionsList} from './pages/prescriptions-list/prescriptions-list'
 
 export const routes: Routes = [
 
@@ -28,8 +29,12 @@ export const routes: Routes = [
       { path: 'patients', component: PatientList },
       { path: 'users', component: UsersList },
       { path: 'schedule', component: ScheduleComponent },
+<<<<<<< Updated upstream
       { path: 'doctor-rest-time', component: DoctorRestTimeFormComponent },
       { path: 'encounters', component: EncounterComponent }
+=======
+      { path: 'prescriptions', component: PrescriptionsList },
+>>>>>>> Stashed changes
     ]
   },
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebServices.DataAccess;
 
@@ -11,9 +12,11 @@ using WebServices.DataAccess;
 namespace WebServices.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260504201310_AddMedicationEntity")]
+    partial class AddMedicationEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -577,35 +580,6 @@ namespace WebServices.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Dosage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MedicationName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PrescriptionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Refills")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PrescriptionId");
-
-                    b.ToTable("PrescriptionMedications");
-                });
-
             modelBuilder.Entity("Domain.Entities.Prescriptions", b =>
                 {
                     b.Property<int>("Id")
@@ -935,26 +909,20 @@ namespace WebServices.Migrations
 
             modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
                 {
-<<<<<<< Updated upstream
-=======
                     b.HasOne("Domain.Entities.Medication", "Medication")
                         .WithMany()
                         .HasForeignKey("MedicationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
->>>>>>> Stashed changes
                     b.HasOne("Domain.Entities.Prescriptions", "Prescription")
                         .WithMany("Medications")
                         .HasForeignKey("PrescriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-<<<<<<< Updated upstream
-=======
                     b.Navigation("Medication");
 
->>>>>>> Stashed changes
                     b.Navigation("Prescription");
                 });
 

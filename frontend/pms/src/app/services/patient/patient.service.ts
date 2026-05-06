@@ -21,9 +21,11 @@ export class PatientService {
   }
 
   // Get patient by name
-  searchPatients(term: string): Observable<Patient[]> {
-    return this.http.get<Patient[]>(`${this.apiUrl}/search?searchTerm=${term}`);
-  }
+  searchPatients(term: string) {
+  return this.http.get<Patient[]>(
+    `${this.apiUrl}/search?searchTerm=${term ?? ''}`
+  );
+}
 
   // Create patient
   createPatient(patient: Patient): Observable<Patient> {

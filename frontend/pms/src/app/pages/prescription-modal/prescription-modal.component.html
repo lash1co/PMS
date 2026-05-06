@@ -1,0 +1,105 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+
+    <!-- Header -->
+    <div class="border-b px-6 py-4 flex justify-between items-center">
+      <h3 class="text-lg font-semibold">
+        {{ formData().id ? 'Edit Prescription' : 'Create Prescription' }}
+      </h3>
+      <button (click)="onClose()">×</button>
+    </div>
+
+    <!-- Content -->
+    <div class="px-6 py-4">
+      <form class="space-y-4">
+
+        <!-- DATE -->
+        <input
+          name="issueDate"
+          type="date"
+          [ngModel]="formData().issueDate"
+          (ngModelChange)="update('issueDate', $event)"
+          class="w-full border p-2 rounded"
+        />
+
+        <!-- DOCTOR -->
+        <select
+          name="doctorId"
+          [ngModel]="formData().doctorId"
+          (ngModelChange)="update('doctorId', $event)"
+          class="w-full border p-2 rounded"
+        >
+          <option [ngValue]="0">Select doctor</option>
+          <option *ngFor="let d of doctors()" [ngValue]="d.id">
+            {{ d.name }}
+          </option>
+        </select>
+
+        <!--  PATIENT -->
+        <select
+          name="patientId"
+          [ngModel]="formData().patientId"
+          (ngModelChange)="update('patientId', $event)"
+          class="w-full border p-2 rounded"
+        >
+          <option [ngValue]="0">Select patient</option>
+          <option *ngFor="let p of patients()" [ngValue]="p.id">
+            {{ p.firstName }} {{ p.lastName }} 
+          </option>
+        </select>
+
+        <!-- MEDICATIONS -->
+        <div 
+        *ngFor="let m of formData().medications; let i = index; trackBy: trackByIndex" 
+        class="flex gap-2"
+        >
+
+          <!-- SELECT MED -->
+          <select
+            name="medication{{i}}"
+            [ngModel]="m.medicationId"
+            (ngModelChange)="updateMed(i, 'medicationId', $event)"
+            class="flex-1 border p-1 rounded"
+          >
+            <option [ngValue]="0">Select</option>
+            <option *ngFor="let med of medicationsList()" [ngValue]="med.id">
+               {{ med.name }}
+            </option>
+          </select>
+
+          <!-- DOSAGE -->
+          <input
+            name="dosage{{i}}"
+            placeholder="Dosage"
+            [ngModel]="m.dosage"
+            (ngModelChange)="updateMed(i, 'dosage', $event)"
+            class="flex-1 border p-1 rounded"
+          />
+
+          <!-- REFILLS -->
+          <input
+            name="refills{{i}}"
+            type="number"
+            [ngModel]="m.refills"
+            (ngModelChange)="updateMed(i, 'refills', $event)"
+            class="w-20 border p-1 rounded"
+          />
+
+          <button type="button" (click)="removeMedication(i)">✕</button>
+        </div>
+
+        <button type="button" (click)="addMedication()">+ Add Medication</button>
+
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 flex justify-end gap-2">
+      <button (click)="onClose()">Cancel</button>
+      <button (click)="onSave()" class="bg-blue-600 text-white px-4 py-2 rounded">
+        Save
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -77,6 +77,7 @@ namespace WebServices.DataAccess
         public DbSet<Prescriptions> DBPrescriptions { get; set; }
 
         public DbSet<PrescriptionMedication> PrescriptionMedications { get; set; }
+        public DbSet<Medication> Medications { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -130,6 +131,18 @@ namespace WebServices.DataAccess
 
             modelBuilder.Entity<Patient>().HasKey(p => p.Id);
             modelBuilder.Entity<Patient>().Property(p => p.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<Patient>().HasData(
+                new Patient
+                {
+                    Id = 1,
+                    FirstName = "Juan",
+                    LastName = "Perez",
+                    DateOfBirth = new DateTime(1990, 5, 10),
+                    Phone = "12345678",
+                    Email = "juan@test.com",
+                    CreatedAt = new DateTime(2026, 4, 30)
+                }
+            );
 
             modelBuilder.Entity<Doctor>().HasKey(p => p.Id);
             modelBuilder.Entity<Doctor>().Property(d => d.Id).ValueGeneratedOnAdd();
@@ -285,16 +298,64 @@ namespace WebServices.DataAccess
                 .WithMany(e => e.Prescriptions)
                 .HasForeignKey(p => p.EncounterId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Medication>().HasKey(m => m.Id);
 
+            modelBuilder.Entity<Medication>().Property(m => m.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Medication>().Property(m => m.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+            modelBuilder.Entity<Medication>().HasData(
+                new Medication { Id = 1, Name = "Paracetamol" },
+                new Medication { Id = 2, Name = "Ibuprofeno" }
+            );
+            modelBuilder.Entity<Prescriptions>().HasData(
+                new Prescriptions
+                {
+                    Id = 1,
+                    IssueDate = new DateOnly(2026, 4, 30),
+                    EncounterId = null,
+                    
+                    DoctorId = 1,  
+                    PatientId = 1
+                }
+            );
             //medications prescricions
             modelBuilder.Entity<PrescriptionMedication>()
-                .HasKey(pm => pm.Id);
+            .HasKey(pm => pm.Id);
 
+            // 🔥 relación con Prescription
             modelBuilder.Entity<PrescriptionMedication>()
                 .HasOne(pm => pm.Prescription)
                 .WithMany(p => p.Medications)
                 .HasForeignKey(pm => pm.PrescriptionId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // 🔥 NUEVO: relación con Medication
+            modelBuilder.Entity<PrescriptionMedication>()
+                .HasOne(pm => pm.Medication)
+                .WithMany() 
+                .HasForeignKey(pm => pm.MedicationId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<PrescriptionMedication>().HasData(
+                new PrescriptionMedication
+                {
+                    Id = 1,
+                    MedicationId = 1,
+                    Dosage = "500mg cada 8 horas",
+                    Refills = 2,
+                    PrescriptionId = 1
+                },
+                new PrescriptionMedication
+                {
+                    Id = 2,
+                    MedicationId = 2,
+                    Dosage = "400mg cada 12 horas",
+                    Refills = 1,
+                    PrescriptionId = 1
+                }
+            );
         }
     }
 }
