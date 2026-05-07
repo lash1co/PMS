@@ -37,14 +37,69 @@ namespace WebServices.Controllers.Invoices
         }
 
         /// <summary>
-        /// Retrieves a list of all invoices in the system.
+        /// Retrieves a list of all pending invoices.
+        /// Pending invoices are those associated with encounters that have not yet been paid.
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Invoice>>> GetInvoices()
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<PendingInvoices>>> GetPendingInvoices()
         {
-            return await _dbContext.DBInvoices
-                .Include(i => i.Patient) // Opcional: Incluir datos del paciente si es necesario
+            var paidEncounters = await _dbContext.DBInvoices
+                .Where(i => i.Status == InvoiceStatus.Paid)
+                .Select(i => i.Encounter!.Id)
+                .ToArrayAsync();
+
+            var encounters = await _dbContext.Encounters
+                .Where(e => !paidEncounters.Contains(e.Id))
+                .Select(e => new
+                {
+                    EncounterId = e.Id,
+                    PatientName = e.Patient.LastName + " " + e.Patient.FirstName,
+                    EncounterDate = DateOnly.FromDateTime(e.StartTime)
+                })
                 .ToListAsync();
+
+            var pendingInvoices = new List<PendingInvoices>();
+
+            foreach (var encounter in encounters)
+            {
+                var invoice = new PendingInvoices
+                {
+                    PatientName = encounter.PatientName,
+                    EncounterDate = encounter.EncounterDate,
+                    InvoiceDetails = new List<PendingInvoiceDetail>
+                    {
+                        new PendingInvoiceDetail
+                        {
+                            Code = "MEDATN",
+                            Quantity = 1,
+                            Description = "Medical Atention"
+                        }
+                    }
+                };
+
+                var invoiceDetails = await _dbContext.DBPrescriptions
+                    .Where(p => p.Encounter.Id == encounter.EncounterId)
+                    .Select(p => p.Medications)
+                    .FirstOrDefaultAsync();
+
+                if (invoiceDetails != null && invoiceDetails.Any())
+                {
+                    foreach (var medication in invoiceDetails)
+                    {
+                        invoice.InvoiceDetails.Add(new PendingInvoiceDetail
+                        {
+                            Code = "MEDPRE",
+                            Quantity = medication.Refills,
+                            Description = medication.MedicationName
+                        });
+                    }
+                }
+
+                pendingInvoices.Add(invoice);
+            }
+
+            return pendingInvoices;
         }
 
         /// <summary>
