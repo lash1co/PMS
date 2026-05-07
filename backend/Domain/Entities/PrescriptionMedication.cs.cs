@@ -8,12 +8,13 @@ namespace Domain.Entities
     {
         public int Id { get; set; }
 
-        public string MedicationName { get; set; } = string.Empty;
+        public int MedicationId { get; set; }
+        public Medication? Medication { get; set; }
         public string Dosage { get; set; } = string.Empty;
         public int Refills { get; set; }
 
         // FK
         public int PrescriptionId { get; set; }
-        public Prescriptions Prescription { get; set; } = default!;
+        public Prescriptions? Prescription { get; set; } = default!;
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebServices.DataAccess;
 
@@ -11,9 +12,11 @@ using WebServices.DataAccess;
 namespace WebServices.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260501043736_SeedPatientAndPrescription")]
+    partial class SeedPatientAndPrescription
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -453,36 +456,6 @@ namespace WebServices.Migrations
                     b.ToTable("DBInvoices");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Medication", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Medications");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Paracetamol"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Ibuprofeno"
-                        });
-                });
-
             modelBuilder.Entity("Domain.Entities.Patient", b =>
                 {
                     b.Property<int>("Id")
@@ -515,66 +488,6 @@ namespace WebServices.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DBPatients");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            DateOfBirth = new DateTime(1990, 5, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "juan@test.com",
-                            FirstName = "Juan",
-                            LastName = "Perez",
-                            Phone = "12345678"
-                        });
-                });
-
-            modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Dosage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MedicationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PrescriptionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Refills")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MedicationId");
-
-                    b.HasIndex("PrescriptionId");
-
-                    b.ToTable("PrescriptionMedications");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Dosage = "500mg cada 8 horas",
-                            MedicationId = 1,
-                            PrescriptionId = 1,
-                            Refills = 2
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Dosage = "400mg cada 12 horas",
-                            MedicationId = 2,
-                            PrescriptionId = 1,
-                            Refills = 1
-                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
@@ -635,15 +548,6 @@ namespace WebServices.Migrations
                     b.HasIndex("PatientId");
 
                     b.ToTable("DBPrescriptions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DoctorId = 1,
-                            IssueDate = new DateOnly(2026, 4, 30),
-                            PatientId = 1
-                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Procedure", b =>
@@ -935,26 +839,12 @@ namespace WebServices.Migrations
 
             modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
                 {
-<<<<<<< Updated upstream
-=======
-                    b.HasOne("Domain.Entities.Medication", "Medication")
-                        .WithMany()
-                        .HasForeignKey("MedicationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
->>>>>>> Stashed changes
                     b.HasOne("Domain.Entities.Prescriptions", "Prescription")
                         .WithMany("Medications")
                         .HasForeignKey("PrescriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-<<<<<<< Updated upstream
-=======
-                    b.Navigation("Medication");
-
->>>>>>> Stashed changes
                     b.Navigation("Prescription");
                 });
 

@@ -23,15 +23,18 @@
         /// <summary>
         /// The doctor who created or authorized this prescription.
         /// </summary>
-        public Doctor Doctor { get; set; } = default!;
+        public Doctor? Doctor { get; set; } = default!;
 
         /// <summary>
         /// The patient for whom this prescription has been written.
         /// </summary>
-        public Patient Patient { get; set; } = default!;
+        public Patient? Patient { get; set; } = default!;
 
         // Encounter FK
         public int? EncounterId { get; set; }
         public Encounter? Encounter { get; set; }
+
+        public int DoctorId { get; set; }
+        public int PatientId { get; set; }
     }
 }
