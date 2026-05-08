@@ -14,7 +14,7 @@ import { EncounterInterface } from '../../Entities/Encounters/Encounter';
 export class EncounterComponent implements OnInit {
   encountersData = signal<EncounterInterface[]>([]);
   currentEncounter: EncounterInterface = {
-    encounterId: 0,
+    EncounterId: 0,
     patientName: '',
     startTime: '',
     endTime: '',

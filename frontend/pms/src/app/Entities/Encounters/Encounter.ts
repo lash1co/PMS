@@ -1,5 +1,5 @@
 export interface EncounterInterface {
-  encounterId: number;
+  EncounterId: number;
   patientName: string;
   startTime: string;
   endTime: string;
@@ -7,7 +7,7 @@ export interface EncounterInterface {
 }
 
 export interface EncounterSummaryDto {
-  encounterId: number;
+  EncounterId: number;
   patientName: string;
   subjective: string;
   objective: string;

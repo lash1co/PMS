@@ -13,7 +13,7 @@ import { EncounterInterface } from '../../Entities/Encounters/Encounter';
 
 export class EncounterModal implements OnChanges {
   @Input() encounter: EncounterInterface = {
-    encounterId: 0,
+    EncounterId: 0,
     patientName: '',
     startTime: '',
     endTime: '',
@@ -24,7 +24,7 @@ export class EncounterModal implements OnChanges {
   @Output() close = new EventEmitter<void>();
 
   encounterForm: EncounterFormInterface = {
-    encounterId: this.encounter.encounterId,
+    EncounterId: this.encounter.EncounterId,
     ClinicalNotes: '',
     Alergies: '',
     Prescription: ''
