@@ -31,6 +31,7 @@ export const routes: Routes = [
       { path: 'schedule', component: ScheduleComponent },
       { path: 'doctor-rest-time', component: DoctorRestTimeFormComponent },
       { path: 'encounters', component: EncounterComponent },
+      { path: 'prescriptions', component: PrescriptionsList },
       { path: 'prescriptions', component: PrescriptionsList }
     ]
   },
