@@ -10,11 +10,9 @@ namespace Domain.Entities
     public enum EncounterStatus
     {
         Planned,
-        Arrived,
         InProgress,
-        Finished,
-        Cancelled,
-        EnteredInError
+        Completed,
+        Cancelled
     }
 
     /// <summary>
@@ -56,11 +54,9 @@ namespace Domain.Entities
     /// </summary>
     public enum AppointmentStatus
     {
-        Planned,
-        Arrived,
+        Scheduled,
         InProgress,
-        Finished,
-        Cancelled,
-        EnteredInError
+        Completed,
+        Cancelled
     }
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EncounterModal } from '../encounter-modal/encounter-modal';
 import { EncounterService } from '../../services/encounter/encounter.service';
+import { EncounterInterface } from '../../Entities/Encounters/Encounter';
 
 @Component({
   selector: 'app-encounter.component',
@@ -13,7 +14,7 @@ import { EncounterService } from '../../services/encounter/encounter.service';
 export class EncounterComponent implements OnInit {
   encountersData = signal<EncounterInterface[]>([]);
   currentEncounter: EncounterInterface = {
-    encounterId: 0,
+    EncounterId: 0,
     patientName: '',
     startTime: '',
     endTime: '',
