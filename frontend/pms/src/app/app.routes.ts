@@ -29,12 +29,9 @@ export const routes: Routes = [
       { path: 'patients', component: PatientList },
       { path: 'users', component: UsersList },
       { path: 'schedule', component: ScheduleComponent },
-<<<<<<< Updated upstream
       { path: 'doctor-rest-time', component: DoctorRestTimeFormComponent },
-      { path: 'encounters', component: EncounterComponent }
-=======
-      { path: 'prescriptions', component: PrescriptionsList },
->>>>>>> Stashed changes
+      { path: 'encounters', component: EncounterComponent },
+      { path: 'prescriptions', component: PrescriptionsList }
     ]
   },
 

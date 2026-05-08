@@ -17,7 +17,11 @@ export class EncounterModal implements OnChanges {
     patientName: '',
     startTime: '',
     endTime: '',
-    encounterReason: ''
+    encounterReason: '',
+    conditions: [],
+    clinicalObservations: [],
+    clinicalNotes: [],
+    prescriptions: []
   };
 
   @Output() save = new EventEmitter<EncounterFormInterface>();
