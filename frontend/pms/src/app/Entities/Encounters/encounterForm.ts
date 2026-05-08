@@ -1,5 +1,5 @@
 interface EncounterFormInterface {
-  EncounterId: number;
+  encounterId: number;
   ClinicalNotes: string;
   Alergies: string;
   Prescription: string;

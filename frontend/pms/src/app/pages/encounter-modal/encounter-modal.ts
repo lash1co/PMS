@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnChanges, signal } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { EncounterInterface } from '../../Entities/Encounters/Encounter';
 
 @Component({
   selector: 'app-encounter-modal',
@@ -23,7 +24,7 @@ export class EncounterModal implements OnChanges {
   @Output() close = new EventEmitter<void>();
 
   encounterForm: EncounterFormInterface = {
-    EncounterId: this.encounter.encounterId,
+    encounterId: this.encounter.encounterId,
     ClinicalNotes: '',
     Alergies: '',
     Prescription: ''

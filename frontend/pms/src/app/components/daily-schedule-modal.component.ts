@@ -1,10 +1,13 @@
 import { Component, inject, effect, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { ScheduleService } from '../services/schedule/schedule.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+
+import { EncounterService } from '../services/encounter/encounter.service';
+import { EncounterModal } from '../pages/encounter-modal/encounter-modal';
 
 @Component({
   selector: 'app-daily-schedule-modal',
@@ -52,6 +55,7 @@ import { environment } from '../../environments/environment';
                     @for (event of getEventsForHour(hour); track event.id) {
                       <div class="p-3 rounded border shadow-sm"
                            [ngClass]="{'bg-blue-50 border-blue-400': event.type === 'Appointment', 'bg-orange-50 border-orange-400': event.type === 'Rest'}">
+                        
                         <div class="flex justify-between items-start">
                           <span class="text-xs px-2 py-1 rounded text-white font-semibold shadow-sm"
                                 [ngClass]="event.type === 'Appointment' ? 'bg-blue-500' : 'bg-orange-500'">
@@ -59,9 +63,33 @@ import { environment } from '../../environments/environment';
                             ({{ event.type === 'Appointment' ? 'Cita' : 'Descanso' }})
                           </span>
                         </div>
+                        
                         @if (event.type === 'Appointment') {
-                          <p class="mt-2 text-sm text-gray-800"><strong>Patient:</strong> {{ event.patientName }}</p>
-                          <p class="text-xs text-gray-600 mt-1"><strong>Reason:</strong> {{ event.scheduleDescription }}</p>
+                          <div class="flex justify-between items-end mt-2">
+                            <div>
+                              <p class="text-sm text-gray-800"><strong>Patient:</strong> {{ event.patientName }}</p>
+                              <p class="text-xs text-gray-600 mt-1"><strong>Reason:</strong> {{ event.scheduleDescription }}</p>
+                            </div>
+                            
+                            <div>
+                              @if (event.scheduleStatus === 'Scheduled') {
+                                <button (click)="startEncounter(event.id)"
+                                        class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-700 transition shadow-sm">
+                                  Start Encounter
+                                </button>
+                              }
+                              @if (event.scheduleStatus === 'InProgress') {
+                                <span class="text-yellow-700 bg-yellow-100 px-2 py-1 rounded text-xs font-bold border border-yellow-300">
+                                  In Progress
+                                </span>
+                              }
+                              @if (event.scheduleStatus === 'Completed') {
+                                <span class="text-green-700 bg-green-100 px-2 py-1 rounded text-xs font-bold border border-green-300">
+                                  Completed
+                                </span>
+                              }
+                            </div>
+                          </div>
                         } @else {
                           <p class="mt-2 text-sm text-gray-800"><strong>Reason:</strong> {{ event.scheduleDescription }}</p>
                         }
@@ -155,6 +183,9 @@ export class DailyScheduleModalComponent implements OnInit {
   dialogRef = inject(MatDialogRef<DailyScheduleModalComponent>);
   scheduleService = inject(ScheduleService);
   http = inject(HttpClient);
+
+  encounterService = inject(EncounterService);
+  dialog = inject(MatDialog);
   
   activeTab = signal<'overview' | 'new'>('overview');
 
@@ -185,7 +216,6 @@ export class DailyScheduleModalComponent implements OnInit {
 
   onDateChange(dateString: string) {
     if (dateString) {
-      // Manual parsing to ensure we get a Date object at noon of the selected day (to avoid timezone issues)
       const parts = dateString.split('-');
       const targetDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0);
       this.scheduleService.selectedDate.set(targetDate);
@@ -204,6 +234,22 @@ export class DailyScheduleModalComponent implements OnInit {
     });
   }
 
+
+  startEncounter(appointmentId: number) {
+    if (!confirm('Do you want to start the medical encounter for this appointment?')) return;
+
+    this.encounterService.startEncounter(appointmentId).subscribe({
+      next: () => {
+        alert('Encounter started successfully. The doctor can now view it in their panel.');
+        this.scheduleService.loadSchedule(); // Only refresh the table
+      },
+      error: (err) => {
+        console.error('Error starting encounter:', err);
+        alert('Failed to start the encounter.');
+      }
+    });
+  }
+
   onSearchPatient() {
     const term = this.patientSearchTerm().trim();
     if (term.length < 1) {
@@ -211,7 +257,6 @@ export class DailyScheduleModalComponent implements OnInit {
       return;
     }
 
-    // bringing the token here as well, in case this endpoint also requires authentication
     const headers = { Authorization: `Bearer ${localStorage.getItem('pms_token')}` };
     
     this.http.get<any[]>(`${environment.apiUrl}/api/patients/search?searchTerm=${term}`, { headers }).subscribe({

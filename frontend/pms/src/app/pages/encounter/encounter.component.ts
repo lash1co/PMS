@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EncounterModal } from '../encounter-modal/encounter-modal';
 import { EncounterService } from '../../services/encounter/encounter.service';
+import { EncounterInterface } from '../../Entities/Encounters/Encounter';
 
 @Component({
   selector: 'app-encounter.component',
