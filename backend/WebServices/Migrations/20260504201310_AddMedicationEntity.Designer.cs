@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebServices.DataAccess;
 
@@ -11,9 +12,11 @@ using WebServices.DataAccess;
 namespace WebServices.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260504201310_AddMedicationEntity")]
+    partial class AddMedicationEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -430,9 +433,6 @@ namespace WebServices.Migrations
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("EncounterId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("IssuedDate")
                         .HasColumnType("datetime2");
 
@@ -450,8 +450,6 @@ namespace WebServices.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EncounterId");
 
                     b.HasIndex("PatientId");
 
@@ -486,41 +484,6 @@ namespace WebServices.Migrations
                             Id = 2,
                             Name = "Ibuprofeno"
                         });
-                });
-
-            modelBuilder.Entity("Domain.Entities.InvoiceDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("InvoiceId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InvoiceId");
-
-                    b.ToTable("InvoiceDetail");
                 });
 
             modelBuilder.Entity("Domain.Entities.Patient", b =>
@@ -615,35 +578,6 @@ namespace WebServices.Migrations
                             PrescriptionId = 1,
                             Refills = 1
                         });
-                });
-
-            modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Dosage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MedicationName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PrescriptionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Refills")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PrescriptionId");
-
-                    b.ToTable("PrescriptionMedications");
                 });
 
             modelBuilder.Entity("Domain.Entities.Prescriptions", b =>
@@ -964,54 +898,31 @@ namespace WebServices.Migrations
 
             modelBuilder.Entity("Domain.Entities.Invoice", b =>
                 {
-                    b.HasOne("Domain.Entities.Encounter", "Encounter")
-                        .WithMany()
-                        .HasForeignKey("EncounterId");
-
                     b.HasOne("Domain.Entities.Patient", "Patient")
                         .WithMany("Invoices")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Encounter");
-
                     b.Navigation("Patient");
-                });
-
-            modelBuilder.Entity("Domain.Entities.InvoiceDetail", b =>
-                {
-                    b.HasOne("Domain.Entities.Invoice", "Invoice")
-                        .WithMany("InvoiceDetails")
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Invoice");
                 });
 
             modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
                 {
-<<<<<<< Updated upstream
-=======
                     b.HasOne("Domain.Entities.Medication", "Medication")
                         .WithMany()
                         .HasForeignKey("MedicationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
->>>>>>> Stashed changes
                     b.HasOne("Domain.Entities.Prescriptions", "Prescription")
                         .WithMany("Medications")
                         .HasForeignKey("PrescriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-<<<<<<< Updated upstream
-=======
                     b.Navigation("Medication");
 
->>>>>>> Stashed changes
                     b.Navigation("Prescription");
                 });
 
@@ -1074,11 +985,6 @@ namespace WebServices.Migrations
                     b.Navigation("Prescriptions");
 
                     b.Navigation("Procedures");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Invoice", b =>
-                {
-                    b.Navigation("InvoiceDetails");
                 });
 
             modelBuilder.Entity("Domain.Entities.Patient", b =>

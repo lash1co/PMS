@@ -96,7 +96,7 @@ namespace WebServices.Controllers.Patients
         /// <param name="searchTerm">The text to search for.</param>
         /// <returns>A list of patients matching all search terms.</returns>
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<Patient>>> SearchPatients([FromQuery] string searchTerm)
+        public async Task<ActionResult<IEnumerable<Patient>>> SearchPatients([FromQuery] string? searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
