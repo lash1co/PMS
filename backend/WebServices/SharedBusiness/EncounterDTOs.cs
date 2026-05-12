@@ -104,4 +104,14 @@
         string DisplayName,
         string Status
     );
+
+    /// <summary>
+    /// Request to create an encounter without a previous appointment (Walk-in/Emergency).
+    /// </summary>
+    public record CreateWalkInRequest(int PatientId, int DoctorId, string? InitialReason);
+
+    /// <summary>
+    /// Request to invalidate an encounter (e.g., entered in error).
+    /// </summary>
+    public record InvalidateEncounterRequest(string Reason);
 }

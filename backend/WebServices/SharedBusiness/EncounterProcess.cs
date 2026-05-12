@@ -28,7 +28,7 @@ namespace WebServices.SharedBusiness
         /// <param name="appointmentId">The unique identifier of the appointment.</param>
         /// <returns>A summary of the newly created encounter.</returns>
         /// <exception cref="Exception">Thrown when the appointment is not found.</exception>
-        public async Task<EncounterSummaryDto> StartEncounterAsync(int appointmentId)
+        public async Task<EncounterSummaryDto> StartEncounterAsync(int appointmentId, string username)
         {
             var appointment = await _dbContext.DBAppointments
                 .Include(a => a.Doctor)
@@ -45,18 +45,39 @@ namespace WebServices.SharedBusiness
                 DoctorId = appointment.Doctor.Id,
                 PatientId = appointment.Patient.Id,
                 Status = EncounterStatus.InProgress,
-                StartTime = DateTime.UtcNow
+                StartTime = DateTime.UtcNow,
+                UpdatedBy = username
             };
 
             _dbContext.Encounters.Add(encounter);
             await _dbContext.SaveChangesAsync();
 
-            var clinicalNote = new ClinicalNote
+            var clinicalNote = new ClinicalNote { EncounterId = encounter.Id, CreatedAt = DateTime.UtcNow };
+            _dbContext.ClinicalNotes.Add(clinicalNote);
+            await _dbContext.SaveChangesAsync();
+
+            return await GetEncounterSummaryAsync(encounter.Id);
+        }
+
+        /// <summary>
+        /// Creates an encounter directly without an appointment (Emergency/Walk-in).
+        /// </summary>
+        public async Task<EncounterSummaryDto> CreateWalkInEncounterAsync(CreateWalkInRequest request, string username)
+        {
+            var encounter = new Encounter
             {
-                EncounterId = encounter.Id,
-                CreatedAt = DateTime.UtcNow
+                PatientId = request.PatientId,
+                DoctorId = request.DoctorId,
+                Status = EncounterStatus.InProgress,
+                StartTime = DateTime.UtcNow,
+                StatusReason = request.InitialReason,
+                UpdatedBy = username
             };
 
+            _dbContext.Encounters.Add(encounter);
+            await _dbContext.SaveChangesAsync();
+
+            var clinicalNote = new ClinicalNote { EncounterId = encounter.Id, CreatedAt = DateTime.UtcNow };
             _dbContext.ClinicalNotes.Add(clinicalNote);
             await _dbContext.SaveChangesAsync();
 
@@ -153,7 +174,7 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter to complete.</param>
         /// <returns>True if the encounter was successfully marked as completed.</returns>
         /// <exception cref="Exception">Thrown when the encounter is not found.</exception>
-        public async Task<bool> CompleteEncounterAsync(int encounterId)
+      public async Task<bool> CompleteEncounterAsync(int encounterId, string username)
         {
             var encounter = await _dbContext.Encounters
                 .Include(e => e.Appointment)
@@ -163,11 +184,28 @@ namespace WebServices.SharedBusiness
 
             encounter.Status = EncounterStatus.Completed;
             encounter.EndTime = DateTime.UtcNow;
+            encounter.UpdatedBy = username; // 👈 Track who completed it
 
             if (encounter.Appointment != null)
             {
                 encounter.Appointment.Status = AppointmentStatus.Completed;
             }
+
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        /// <summary>
+        /// Sets an encounter status to 'Cancelled' to invalidate it without deleting data.
+        /// </summary>
+        public async Task<bool> InvalidateEncounterAsync(int encounterId, InvalidateEncounterRequest request, string username)
+        {
+            var encounter = await _dbContext.Encounters.FindAsync(encounterId);
+            if (encounter == null) return false;
+
+            encounter.Status = EncounterStatus.Cancelled;
+            encounter.StatusReason = request.Reason;
+            encounter.UpdatedBy = username;
 
             await _dbContext.SaveChangesAsync();
             return true;

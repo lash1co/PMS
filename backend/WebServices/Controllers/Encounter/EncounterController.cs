@@ -88,8 +88,43 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("start/{appointmentId}")]
         public async Task<IActionResult> StartEncounter(int appointmentId)
         {
-            var result = await _encounterProcess.StartEncounterAsync(appointmentId);
+            
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+
+            if (!authResult.Value.tokenIsValid) return Unauthorized();
+
+            var result = await _encounterProcess.StartEncounterAsync(appointmentId, authResult.Value.userName);
             return Ok(result);
+        }
+        /// <summary>
+        /// Creates an encounter for a walk-in or emergency patient without a scheduled appointment.
+        /// </summary>
+        [HttpPost("walk-in")]
+        public async Task<IActionResult> CreateWalkIn([FromBody] CreateWalkInRequest request)
+        {
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+
+            if (!authResult.Value.tokenIsValid) return Unauthorized();
+
+            var result = await _encounterProcess.CreateWalkInEncounterAsync(request, authResult.Value.userName);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Invalidates an encounter, marking it as "Entered in Error" with a justification.
+        /// </summary>
+        [HttpPost("{id}/invalidate")]
+        public async Task<IActionResult> InvalidateEncounter(int id, [FromBody] InvalidateEncounterRequest request)
+        {
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+
+            if (!authResult.Value.tokenIsValid) return Unauthorized();
+
+            var result = await _encounterProcess.InvalidateEncounterAsync(id, request, authResult.Value.userName);
+            return result ? Ok(new { message = "Encounter invalidated." }) : NotFound();
         }
 
         /// <summary>
@@ -125,7 +160,12 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("{id}/complete")]
         public async Task<IActionResult> CompleteEncounter(int id)
         {
-            var result = await _encounterProcess.CompleteEncounterAsync(id);
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+
+            if (!authResult.Value.tokenIsValid) return Unauthorized();
+
+            var result = await _encounterProcess.CompleteEncounterAsync(id, authResult.Value.userName);
             return Ok(result);
         }
 
