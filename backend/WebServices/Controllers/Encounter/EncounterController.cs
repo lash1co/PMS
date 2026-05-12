@@ -105,5 +105,7 @@ namespace WebServices.Controllers.Encounter
             var result = await _encounterProcess.CompleteEncounterAsync(id);
             return Ok(result);
         }
+
+
     }
 }

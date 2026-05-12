@@ -28,4 +28,5 @@
     public record CreateObservationDto(string Category, string DisplayName, string ValueString, string Unit);
     public record CreateAllergyDto(string Substance, string Criticality, string Reaction);
     public record CreateConditionDto(string Code, string DisplayName, string ClinicalStatus);
+    public record CreateProcedureDto(string Code, string DisplayName, string Status);
 }
