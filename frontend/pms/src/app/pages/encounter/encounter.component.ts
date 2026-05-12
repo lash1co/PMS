@@ -17,7 +17,11 @@ export class EncounterComponent implements OnInit {
     patientName: '',
     startTime: '',
     endTime: '',
-    encounterReason: ''
+    encounterReason: '',
+    conditions: [],
+    clinicalObservations: [],
+    clinicalNotes: [],
+    prescriptions: [],
   };
   showModal = signal<boolean>(false);
   isSaving = signal<boolean>(false);
