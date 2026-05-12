@@ -10,7 +10,7 @@ namespace WebServices.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            /*migrationBuilder.DropColumn(
                 name: "Dosage",
                 table: "DBPrescriptions");
 
@@ -20,7 +20,7 @@ namespace WebServices.Migrations
 
             migrationBuilder.DropColumn(
                 name: "Refils",
-                table: "DBPrescriptions");
+                table: "DBPrescriptions");*/
 
             migrationBuilder.CreateTable(
                 name: "PrescriptionMedications",

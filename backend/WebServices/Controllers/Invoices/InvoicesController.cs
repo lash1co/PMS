@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Domain.Entities;
+using Domain.Exceptions;
+using Domain.SharedConstants;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebServices.DataAccess;
+using WebServices.Repositories;
 using WebServices.SharedBusiness;
-using Domain.Entities;
-using Domain.Exceptions;
-using Microsoft.AspNetCore.Authorization;
 
 namespace WebServices.Controllers.Invoices
 {
@@ -22,15 +24,23 @@ namespace WebServices.Controllers.Invoices
     // [Authorize] // Descomenta esto si las facturas requieren que el usuario esté logueado
     public class InvoicesController : ControllerBase
     {
+        private readonly IConfiguration _config;
         private readonly DatabaseContext _dbContext;
         private readonly InvoiceProcess _invoiceProcess; // Proceso dedicado a facturas
         private readonly PatientProcess _patientProcess;
+        private readonly List<string> _authorizedRoles = new List<string>
+        {
+            UserConstants.RoleConstants.AdminRole,
+            UserConstants.RoleConstants.BillingRole
+        };
 
         public InvoicesController(
+            IConfiguration config,
             DatabaseContext dbContext,
             InvoiceProcess invoiceProcess,
             PatientProcess patientProcess)
         {
+            _config = config;
             _dbContext = dbContext;
             _invoiceProcess = invoiceProcess;
             _patientProcess = patientProcess;
@@ -50,7 +60,8 @@ namespace WebServices.Controllers.Invoices
                 .ToArrayAsync();
 
             var encounters = await _dbContext.Encounters
-                .Where(e => !paidEncounters.Contains(e.Id))
+                .Where(e => !paidEncounters.Contains(e.Id) &&
+                    e.Status != EncounterStatus.Finished)
                 .Select(e => new
                 {
                     EncounterId = e.Id,
@@ -65,6 +76,7 @@ namespace WebServices.Controllers.Invoices
             {
                 var invoice = new PendingInvoices
                 {
+                    EncounterId = encounter.EncounterId,
                     PatientName = encounter.PatientName,
                     EncounterDate = encounter.EncounterDate,
                     InvoiceDetails = new List<PendingInvoiceDetail>
@@ -78,23 +90,29 @@ namespace WebServices.Controllers.Invoices
                     }
                 };
 
-                var invoiceDetails = await _dbContext.DBPrescriptions
-                    .Where(p => p.Encounter.Id == encounter.EncounterId)
-                    .Select(p => p.Medications)
-                    .FirstOrDefaultAsync();
+                var invoiceDetails = await _dbContext.PrescriptionMedications
+                    .Where(m => m.Prescription.Encounter.Id == encounter.EncounterId)
+                    .Select(m => new PendingInvoiceDetail{
+                        Code = "MEDPRSC",
+                        Quantity = m.Refills,
+                        Description = m.Medication!.Name
+                    })
+                    .ToListAsync();
 
-                if (invoiceDetails != null && invoiceDetails.Any())
-                {
-                    foreach (var medication in invoiceDetails)
-                    {
-                        invoice.InvoiceDetails.Add(new PendingInvoiceDetail
-                        {
-                            Code = "MEDPRE",
-                            Quantity = medication.Refills,
-                            Description = medication.MedicationName
-                        });
-                    }
-                }
+                invoice.InvoiceDetails.AddRange(invoiceDetails);
+
+                //if (invoiceDetails != null && invoiceDetails.Any())
+                //{
+                //    foreach (var medication in invoiceDetails)
+                //    {
+                //        invoice.InvoiceDetails.Add(new PendingInvoiceDetail
+                //        {
+                //            Code = "MEDPRE",
+                //            Quantity = medication.Refills,
+                //            Description = medication.Medication!.Name,
+                //        });
+                //    }
+                //}
 
                 pendingInvoices.Add(invoice);
             }
@@ -107,7 +125,7 @@ namespace WebServices.Controllers.Invoices
         /// </summary>
         /// <param name="request">The data required to create the invoice, including PatientId.</param>
         /// <returns>A success message and the new invoice ID.</returns>
-        [HttpPost]
+        [HttpPost("createInvoice")]
         public async Task<IActionResult> CreateInvoice([FromBody] InvoiceRequestRecord request)
         {
             // 1. Verificar que el paciente exista
@@ -140,6 +158,42 @@ namespace WebServices.Controllers.Invoices
             {
                 return BadRequest(new { error = ex.Message });
             }
+        }
+
+        //Accessible via api/invoices/createBilling
+        [HttpPost("createBilling")]
+        [Authorize]
+        public async Task<ActionResult<UpsertRequest>> CreateBilling([FromBody] InvoiceRequest billingRecord)
+        {
+            var validationProcess = new TokenValidationProcess(_config, _dbContext);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            if (!authResult.Value.tokenIsValid)
+            {
+                return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
+            }
+
+            var encounter = await _dbContext.Encounters
+                .Include(x => x.Patient)
+                .Where(e => e.Id == billingRecord.EncounterId)
+                .FirstOrDefaultAsync();
+
+            if (encounter is null)
+            {
+                return NotFound("The specified Encounter does not exist.");
+            }
+
+            var billingRepository = new BillingRepository(_dbContext);
+            var billingProcessResult = await billingRepository.CreateInvoice(billingRecord, encounter);
+
+            if (!billingProcessResult.UpsertSuccessfull)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    billingProcessResult.Message
+                );
+            }
+
+            return Ok(billingProcessResult);
         }
 
         /// <summary>

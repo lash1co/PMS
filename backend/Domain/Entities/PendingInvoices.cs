@@ -6,6 +6,11 @@
     public class PendingInvoices
     {
         /// <summary>
+        /// Gets or sets Encounter ID for pending invoice
+        /// </summary>
+        public int EncounterId { get; set; }
+
+        /// <summary>
         /// Patient's full name associated with the pending invoices.
         /// </summary>
         public string PatientName { get; set; } = string.Empty;

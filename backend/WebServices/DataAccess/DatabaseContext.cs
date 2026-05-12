@@ -134,7 +134,7 @@ namespace WebServices.DataAccess
             modelBuilder.Entity<Patient>().HasData(
                 new Patient
                 {
-                    Id = 1,
+                    Id = -1,
                     FirstName = "Juan",
                     LastName = "Perez",
                     DateOfBirth = new DateTime(1990, 5, 10),
