@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnChanges, signal } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { EncounterInterface } from '../../Entities/Encounters/Encounter';
 
 @Component({
   selector: 'app-encounter-modal',
@@ -12,7 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 
 export class EncounterModal implements OnChanges {
   @Input() encounter: EncounterInterface = {
-    encounterId: 0,
+    EncounterId: 0,
     patientName: '',
     startTime: '',
     endTime: '',
@@ -20,14 +21,14 @@ export class EncounterModal implements OnChanges {
     conditions: [],
     clinicalObservations: [],
     clinicalNotes: [],
-    prescriptions: [],
+    prescriptions: []
   };
 
   @Output() save = new EventEmitter<EncounterFormInterface>();
   @Output() close = new EventEmitter<void>();
 
   encounterForm: EncounterFormInterface = {
-    EncounterId: this.encounter.encounterId,
+    EncounterId: this.encounter.EncounterId,
     ClinicalNotes: '',
     Alergies: '',
     Prescription: ''

@@ -24,7 +24,7 @@
         /// <summary>
         /// Current status of the appointment (e.g., Planned, Arrived, InProgress, Finished, Cancelled, EnteredInError).
         /// </summary>
-        public AppointmentStatus Status { get; set; } = AppointmentStatus.Planned;
+        public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
 
         /// <summary>
         /// The reason for the appointment or a short description of the visit.

@@ -6,22 +6,26 @@ using Microsoft.EntityFrameworkCore;
 using WebServices.DataAccess;
 using WebServices.SharedBusiness;
 
-namespace WebServices.Encounters
+namespace WebServices.Controllers.Encounter 
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EncounterController : Controller
+    [Authorize]
+    public class EncounterController : ControllerBase
     {
+        private readonly EncounterProcess _encounterProcess;
         private readonly IConfiguration _config;
         private readonly DatabaseContext _context;
+
         private readonly List<string> _authorizedRoles = new List<string>
         {
             UserConstants.RoleConstants.AdminRole,
             UserConstants.RoleConstants.DoctorRole
         };
 
-        public EncounterController(IConfiguration config, DatabaseContext context)
+        public EncounterController(EncounterProcess encounterProcess, IConfiguration config, DatabaseContext context)
         {
+            _encounterProcess = encounterProcess;
             _config = config;
             _context = context;
         }
@@ -29,8 +33,7 @@ namespace WebServices.Encounters
         /// <summary>
         /// Retrieves a list of encounters for the authenticated doctor.
         /// </summary>
-        /// <returns></returns>
-        [Authorize]
+        /// <returns>A list of EncounterResponse objects.</returns>
         [HttpGet]
         public async Task<ActionResult<List<EncounterResponse>>> GetEncounters()
         {
@@ -61,6 +64,46 @@ namespace WebServices.Encounters
                 .ToListAsync();
 
             return Ok(encounters);
+        }
+
+        /// <summary>
+        /// Starts a new clinical encounter associated with an appointment.
+        /// </summary>
+        [HttpPost("start/{appointmentId}")]
+        public async Task<IActionResult> StartEncounter(int appointmentId)
+        {
+            var result = await _encounterProcess.StartEncounterAsync(appointmentId);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves the complete summary of a specific encounter.
+        /// </summary>
+        [HttpGet("{id}/summary")]
+        public async Task<IActionResult> GetSummary(int id)
+        {
+            var result = await _encounterProcess.GetEncounterSummaryAsync(id);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Updates the clinical note (SOAP) for a specific encounter.
+        /// </summary>
+        [HttpPut("{id}/note")]
+        public async Task<IActionResult> UpdateNote(int id, [FromBody] UpdateClinicalNoteRequest request)
+        {
+            var result = await _encounterProcess.UpdateClinicalNoteAsync(id, request);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Completes the encounter and frees up the schedule.
+        /// </summary>
+        [HttpPost("{id}/complete")]
+        public async Task<IActionResult> CompleteEncounter(int id)
+        {
+            var result = await _encounterProcess.CompleteEncounterAsync(id);
+            return Ok(result);
         }
     }
 }
