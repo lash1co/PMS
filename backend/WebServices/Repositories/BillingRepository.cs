@@ -43,7 +43,7 @@ namespace WebServices.Repositories
                             }).ToList(),
                     });
 
-                encounter.Status = EncounterStatus.Finished;
+                encounter.Status = EncounterStatus.Completed;
 
                 _databaseContext.SaveChanges();
 

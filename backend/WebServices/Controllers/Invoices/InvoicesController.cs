@@ -61,7 +61,7 @@ namespace WebServices.Controllers.Invoices
 
             var encounters = await _dbContext.Encounters
                 .Where(e => !paidEncounters.Contains(e.Id) &&
-                    e.Status != EncounterStatus.Finished)
+                    e.Status != EncounterStatus.Completed)
                 .Select(e => new
                 {
                     EncounterId = e.Id,
@@ -90,7 +90,7 @@ namespace WebServices.Controllers.Invoices
                     }
                 };
 
-                var invoiceDetails = await _dbContext.PrescriptionMedications
+                var invoiceMedicationDetails = await _dbContext.PrescriptionMedications
                     .Where(m => m.Prescription.Encounter.Id == encounter.EncounterId)
                     .Select(m => new PendingInvoiceDetail{
                         Code = "MEDPRSC",
@@ -99,7 +99,7 @@ namespace WebServices.Controllers.Invoices
                     })
                     .ToListAsync();
 
-                invoice.InvoiceDetails.AddRange(invoiceDetails);
+                invoice.InvoiceDetails.AddRange(invoiceMedicationDetails);
 
                 //if (invoiceDetails != null && invoiceDetails.Any())
                 //{
