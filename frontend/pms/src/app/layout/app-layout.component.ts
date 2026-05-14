@@ -47,10 +47,15 @@ import { AuthService } from '../services/auth/auth.service';
              <span class="font-medium">Encounters</span>
           </a>
 
-                  <a routerLink="/prescriptions" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
-          class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
-          <span class="font-medium">Prescriptions</span>
-        </a>
+          <a routerLink="/prescriptions" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
+            class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
+            <span class="font-medium">Prescriptions</span>
+          </a>
+
+          <a routerLink="/billing" routerLinkActive="bg-gray-800 border-l-4 border-blue-500"
+            class="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-800 hover:text-white rounded-r-md transition-colors">
+            <span class="font-medium">Billing</span>
+          </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800">
