@@ -10,7 +10,6 @@ namespace WebServices.Controllers.Doctors
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize] // Descomenta esta línea si decides requerir autenticación para este controlador
     public class DoctorsController : ControllerBase
     {
         private readonly DoctorProcess _doctorProcess;
