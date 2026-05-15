@@ -1,26 +1,30 @@
 export interface EncounterInterface {
-  EncounterId: number;
+  encounterId: number;
   patientName: string;
+  doctorName: string;
   startTime: string;
   endTime: string;
   encounterReason: string;
-  conditions: conditionInterface[];
-  clinicalObservations: clinicalObservationsInterface[];
-  clinicalNotes: clinicalNotesInterface[];
-  prescriptions: prescriptionInterface[];
+  status: string;
 }
 
 export interface EncounterSummaryDto {
-  EncounterId: number;
+  id: number;
+  appointmentId?: number;
+  status: string;
   patientName: string;
-  subjective: string;
-  objective: string;
-  assessment: string;
-  plan: string;
+  doctorName: string;
+  subjective?: string;
+  objective?: string;
+  assessment?: string;
+  plan?: string;
   observationsCount: number;
   conditionsCount: number;
+  proceduresCount: number;
   allergiesCount: number;
   prescriptionsCount: number;
   observations: any[]; 
   allergies: any[];
+  conditions: any[];
+  procedures: any[];
 }
