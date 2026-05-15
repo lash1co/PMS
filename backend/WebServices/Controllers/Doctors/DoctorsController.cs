@@ -17,8 +17,18 @@ namespace WebServices.Controllers.Doctors
 
         public DoctorsController(DatabaseContext dbContext)
         {
-            // Inicializamos la capa de proceso de negocio
             _doctorProcess = new DoctorProcess(dbContext);
+        }
+
+        /// <summary>
+        /// Gets a list of all doctors. 
+        /// This endpoint can be used to retrieve the complete list of doctors without any search criteria.
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
+        {
+            var doctors = await _doctorProcess.SearchDoctorsAsync("");
+            return Ok(doctors);
         }
 
         /// <summary>
@@ -29,7 +39,6 @@ namespace WebServices.Controllers.Doctors
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<Doctor>>> SearchDoctors([FromQuery] string searchTerm = "")
         {
-            // Toda la lógica de Entity Framework y sanitización se maneja en el Process
             var doctors = await _doctorProcess.SearchDoctorsAsync(searchTerm);
             return Ok(doctors);
         }

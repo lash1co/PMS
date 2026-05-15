@@ -1,4 +1,6 @@
-﻿namespace WebServices.SharedBusiness
+﻿using Domain.Entities;
+
+namespace WebServices.SharedBusiness
 {
     /// <summary>
     /// Data Transfer Object representing a comprehensive summary of a clinical encounter.
@@ -8,6 +10,7 @@
     /// <param name="AppointmentId">The unique identifier of the associated appointment, if applicable.</param>
     /// <param name="Status">The current workflow status of the encounter (e.g., Planned, InProgress, Completed).</param>
     /// <param name="PatientName">The full name of the patient associated with the encounter.</param>
+    /// <param name="DoctorName">The name of the doctor associated with the encounter.</param>
     /// <param name="Subjective">The subjective section of the clinical note (patient's reported symptoms and history).</param>
     /// <param name="Objective">The objective section of the clinical note (doctor's physical exam findings and vital signs).</param>
     /// <param name="Assessment">The assessment section of the clinical note (medical diagnosis or problem synthesis).</param>
@@ -26,6 +29,7 @@
         int? AppointmentId,
         string Status,
         string PatientName,
+        string DoctorName,
         string? Subjective,
         string? Objective,
         string? Assessment,
@@ -102,7 +106,7 @@
     public record CreateProcedureDto(
         string Code,
         string DisplayName,
-        string Status
+        ProcedureStatus Status
     );
 
     /// <summary>

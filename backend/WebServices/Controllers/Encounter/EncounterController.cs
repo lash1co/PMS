@@ -67,13 +67,16 @@ namespace WebServices.Controllers.Encounter
 
             var encounters = await _context.Encounters
                 .Where(e => e.DoctorId == doctor.Id)
+                .OrderByDescending(e => e.StartTime)
                 .Select(e => new EncounterResponse
                 {
                     EncounterId = e.Id,
                     PatientName = e.Patient.LastName + " " + e.Patient.FirstName,
-                    StartTime = TimeOnly.FromDateTime(e.StartTime),
-                    EndTime = e.EndTime.HasValue ? TimeOnly.FromDateTime(e.EndTime.Value) : TimeOnly.FromDateTime(e.StartTime),
-                    EncounterReason = e.Appointment != null ? e.Appointment.Reason : string.Empty
+                    DoctorName = doctor.Name,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+                    EncounterReason = e.Appointment != null ? e.Appointment.Reason : (e.StatusReason ?? "Walk-In / Emergency"),
+                    Status = e.Status.ToString()
                 })
                 .ToListAsync();
 
