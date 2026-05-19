@@ -114,6 +114,18 @@
           <span class="layout-nav-label">Prescriptions</span>
         }
       </a>
+
+      <a
+        routerLink="/billing"
+        routerLinkActive="layout-nav-link--active"
+        class="layout-nav-link"
+        [title]="sidebarCollapsed() ? 'Billing' : ''"
+      >
+        <span class="material-icons layout-nav-ico" aria-hidden="true">receipt_long</span>
+        @if (!sidebarCollapsed()) {
+          <span class="layout-nav-label">Billing</span>
+        }
+      </a>
     </nav>
 
     <div class="layout-aside-footer">

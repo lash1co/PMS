@@ -1,42 +1,146 @@
 <div class="min-h-screen bg-gray-100 p-8">
-  <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+  <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-8">
 
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+    <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between mb-8 gap-4">
       <h2 class="text-2xl font-semibold text-gray-800">Encounters Management</h2>
+      
+      <div class="flex flex-wrap items-center gap-3">
+        <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)" class="border border-gray-300 rounded-md px-3 py-2 bg-white focus:ring-blue-500 focus:border-blue-500 outline-none text-sm">
+          <option value="InProgress">In Progress</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+          <option value="All">All Statuses</option>
+        </select>
+
+        <input type="date" [ngModel]="dateFilter()" (ngModelChange)="dateFilter.set($event)" class="border border-gray-300 rounded-md px-3 py-2 bg-white focus:ring-blue-500 focus:border-blue-500 outline-none text-sm text-gray-600">
+        
+        <div class="relative w-full sm:w-64">
+          <input 
+            type="text" 
+            [ngModel]="searchQuery()" 
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Search ID, Patient or Doctor..." 
+            class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          >
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+        </div>
+        
+        <button (click)="openWalkInModal()" class="whitespace-nowrap px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 shadow-sm transition">
+          + New Walk-In
+        </button>
+      </div>
     </div>
 
     <div class="overflow-x-auto border border-gray-200 rounded-lg">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Time</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Time</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr *ngFor="let encounter of encountersData()" class="hover:bg-gray-50 transition">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ encounter.patientName }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{{ encounter.startTime }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ encounter.endTime }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ encounter.encounterReason }}</td>
+          <tr *ngFor="let encounter of filteredEncounters()" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">#{{ encounter.encounterId }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                    [ngClass]="{
+                      'bg-yellow-100 text-yellow-800': encounter.status === 'InProgress',
+                      'bg-green-100 text-green-800': encounter.status === 'Completed',
+                      'bg-red-100 text-red-800': encounter.status === 'Cancelled'
+                    }">
+                {{ encounter.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-700 font-medium">Dr. {{ encounter.doctorName }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ encounter.patientName }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ encounter.startTime | date:'MMM dd, yyyy HH:mm' }}</td>
+            <td class="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" [title]="encounter.encounterReason">{{ encounter.encounterReason }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <button (click)="openEncounterModal(encounter)" class="text-blue-600 hover:text-blue-900 mr-4">Enter Encounter</button>
+              <button (click)="openEncounterModal(encounter)" class="text-blue-600 hover:text-blue-900 font-semibold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 transition-colors">
+                View / Edit
+              </button>
             </td>
           </tr>
-          <tr *ngIf="encountersData().length === 0">
-            <td colspan="6" class="px-6 py-12 text-center text-gray-500 italic">No encounters found.</td>
+          <tr *ngIf="filteredEncounters().length === 0">
+            <td colspan="7" class="px-6 py-12 text-center text-gray-500 italic">No encounters match your search criteria.</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+
   <app-encounter-modal
-    *ngIf="showModal()"
-    [encounter]="currentEncounter"
-    (save)="onSave($event)"
+    *ngIf="showModal() && selectedEncounterId() !== null"
+    [encounterId]="selectedEncounterId()!"
+    (completed)="onEncounterCompleted()"
     (close)="closeModal()"
   ></app-encounter-modal>
+
+  <div *ngIf="showWalkInModal()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col">
+      <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
+        <h3 class="text-lg font-bold text-gray-800">Create Walk-In Encounter</h3>
+        <button (click)="closeWalkInModal()" class="text-gray-400 hover:text-red-500 text-xl font-bold transition-colors">&times;</button>
+      </div>
+      
+      <div class="p-6 space-y-5">
+        
+        <div class="relative">
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Patient <span class="text-red-500">*</span></label>
+          <input type="text" [ngModel]="patientSearch()" (ngModelChange)="patientSearch.set($event); walkInForm.update(f => ({...f, patientId: null}))" 
+                 placeholder="Type patient name..." 
+                 class="w-full border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow text-sm">
+          
+          <div *ngIf="patientSearch() && !walkInForm().patientId" class="absolute z-10 w-full bg-white border border-gray-200 rounded-b-md shadow-lg mt-1 max-h-40 overflow-y-auto">
+            <div *ngFor="let p of filteredPatients()" (click)="selectPatient(p)" class="p-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700 border-b border-gray-100 last:border-b-0">
+              <span class="font-medium">{{p.lastName}}</span>, {{p.firstName}}
+            </div>
+            <div *ngIf="filteredPatients().length === 0" class="p-2 text-sm text-gray-500 italic">No patients found.</div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Doctor <span class="text-red-500">*</span></label>
+          <input type="text" [ngModel]="doctorSearch()" (ngModelChange)="doctorSearch.set($event); walkInForm.update(f => ({...f, doctorId: null}))" 
+                 placeholder="Type doctor name..." 
+                 class="w-full border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow text-sm">
+          
+          <div *ngIf="doctorSearch() && !walkInForm().doctorId" class="absolute z-10 w-full bg-white border border-gray-200 rounded-b-md shadow-lg mt-1 max-h-40 overflow-y-auto">
+            <div *ngFor="let d of filteredDoctors()" (click)="selectDoctor(d)" class="p-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700 border-b border-gray-100 last:border-b-0">
+              Dr. {{d.name}}
+            </div>
+            <div *ngIf="filteredDoctors().length === 0" class="p-2 text-sm text-gray-500 italic">No doctors found.</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Initial Reason / Symptoms</label>
+          <textarea [ngModel]="walkInForm().reason" (ngModelChange)="walkInForm.update(f=>({...f, reason: $event}))" 
+                    placeholder="e.g. Headache, Fever..." 
+                    class="w-full border border-gray-300 p-3 rounded-md h-24 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow text-sm resize-none"></textarea>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
+        <button (click)="closeWalkInModal()" class="px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50 transition-colors font-medium text-sm">
+          Cancel
+        </button>
+        <button (click)="submitWalkIn()" 
+                [disabled]="isSavingWalkIn() || !walkInForm().patientId || !walkInForm().doctorId" 
+                class="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors font-medium text-sm shadow-sm">
+          {{ isSavingWalkIn() ? 'Creating...' : 'Create Encounter' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
