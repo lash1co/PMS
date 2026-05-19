@@ -1,3 +1,4 @@
+// src/app/services/encounter/encounter.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -22,6 +23,14 @@ export class EncounterService {
     return this.http.post<any>(`${this.apiUrl}/start/${appointmentId}`, {}, this.getAuthHeaders());
   }
 
+  startWalkIn(data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/walk-in`, data, this.getAuthHeaders());
+  }
+
+  invalidateEncounter(id: number, reason: string): Observable<any> {
+  return this.http.post(`${this.apiUrl}/${id}/invalidate`, { reason }, this.getAuthHeaders());
+}
+
   getEncounterSummary(encounterId: number): Observable<EncounterSummaryDto> {
     return this.http.get<EncounterSummaryDto>(`${this.apiUrl}/${encounterId}/summary`, this.getAuthHeaders());
   }
@@ -30,27 +39,35 @@ export class EncounterService {
     return this.http.put(`${this.apiUrl}/${id}/note`, data, this.getAuthHeaders());
   }
 
+  completeEncounter(id: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/complete`, {}, this.getAuthHeaders());
+  }
+
   addObservation(id: number, data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/${id}/observations`, data, this.getAuthHeaders());
+  }
+  deleteObservation(encounterId: number, observationId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${encounterId}/observations/${observationId}`, this.getAuthHeaders());
   }
 
   addAllergy(id: number, data: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/${id}/allergies`, data, this.getAuthHeaders());
   }
-
-  completeEncounter(id: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${id}/complete`, {}, this.getAuthHeaders());
+  deleteAllergy(encounterId: number, allergyId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${encounterId}/allergies/${allergyId}`, this.getAuthHeaders());
   }
 
-  deleteObservation(encounterId: number, observationId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${encounterId}/observations/${observationId}`, this.getAuthHeaders());
+  addCondition(id: number, data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/conditions`, data, this.getAuthHeaders());
   }
-
   deleteCondition(encounterId: number, conditionId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${encounterId}/conditions/${conditionId}`, this.getAuthHeaders());
   }
 
-  deleteAllergy(encounterId: number, allergyId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${encounterId}/allergies/${allergyId}`, this.getAuthHeaders());
+  addProcedure(id: number, data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/procedures`, data, this.getAuthHeaders());
+  }
+  deleteProcedure(encounterId: number, procedureId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${encounterId}/procedures/${procedureId}`, this.getAuthHeaders());
   }
 }

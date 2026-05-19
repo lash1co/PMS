@@ -94,6 +94,7 @@ namespace WebServices.SharedBusiness
         {
             var encounter = await _dbContext.Encounters
                 .Include(e => e.Patient)
+                .Include(e => e.Doctor)
                 .Include(e => e.ClinicalNote)
                 .Include(e => e.Observations)
                 .Include(e => e.Conditions)
@@ -107,6 +108,10 @@ namespace WebServices.SharedBusiness
             string patientName = encounter.Patient != null
                 ? $"{encounter.Patient.LastName} {encounter.Patient.FirstName}"
                 : string.Empty;
+
+            string doctorName = encounter.Doctor != null
+                ? encounter.Doctor.Name
+                : "Unassigned";
 
             // We explicitly cast to (object) so the compiler matches the right side of the ?? operator
             var observationsList = encounter.Observations?
@@ -130,6 +135,7 @@ namespace WebServices.SharedBusiness
                 encounter.AppointmentId,
                 encounter.Status.ToString(),
                 patientName,
+                doctorName,
                 encounter.ClinicalNote?.Subjective,
                 encounter.ClinicalNote?.Objective,
                 encounter.ClinicalNote?.Assessment,
@@ -309,6 +315,7 @@ namespace WebServices.SharedBusiness
                 EncounterId = encounterId,
                 PatientId = encounter.PatientId,
                 Code = dto.Code,
+                Status = dto.Status,
                 DisplayName = dto.DisplayName,
                 PerformedDate = DateTime.UtcNow
             });
