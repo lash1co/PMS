@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { EncounterInterface, EncounterSummaryDto } from '../../Entities/Encounters/Encounter';
+import { getPmsToken } from '../../utils/storage.util';
 
 @Injectable({ providedIn: 'root' })
 export class EncounterService {
@@ -11,7 +12,7 @@ export class EncounterService {
   private apiUrl = `${environment.apiUrl}/api/encounter`;
 
   private getAuthHeaders() {
-    const token = localStorage.getItem('pms_token');
+    const token = getPmsToken();
     return { headers: { Authorization: `Bearer ${token}` } };
   }
 
