@@ -16,6 +16,9 @@ import type {
   ApexNonAxisChartSeries
 } from 'ng-apexcharts';
 
+import { AnalyticsService } from '../../services/analytics/analytics.service';
+import { DashboardSummary } from '../../models/analytics/dashboard-summary.model';
+
 type ChartTab = 'daily' | 'weekly' | 'monthly';
 
 @Component({
@@ -245,5 +248,27 @@ export class DashboardComponent {
       monthly: [30, 18, 22, 14]
     };
     this.patientSeries = [...sets[tab]];
+  }
+
+  // Analytics data
+  private analyticsService = inject(AnalyticsService);
+  summary = signal<DashboardSummary | null>(null);
+
+  ngOnInit() {
+    this.loadDashboardData();
+  }
+
+  loadDashboardData() {
+    this.analyticsService.getSummary().subscribe(data => {
+      this.summary.set(data);
+      this.updateCharts(data);
+    });
+  }
+
+  updateCharts(data: DashboardSummary) {
+    this.patientSeries = data.topConditions.map(c => c.patientCount);
+    this.patientLabels = data.topConditions.map(c => c.conditionName);
+    
+    // Similar logic can be applied to update other charts based on the summary data...
   }
 }

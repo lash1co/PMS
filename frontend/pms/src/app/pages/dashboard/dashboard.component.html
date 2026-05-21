@@ -36,7 +36,7 @@
         </div>
         <div class="dash-kpi-text">
           <p class="dash-kpi-label">Appointments</p>
-          <p class="dash-kpi-value text-gray-900">650</p>
+          <p class="dash-kpi-value text-gray-900">{{ summary()?.totalAppointments || 0 }}</p>
         </div>
       </div>
       @if (chartsReady()) {
@@ -60,8 +60,8 @@
           <span class="material-icons">content_cut</span>
         </div>
         <div class="dash-kpi-text">
-          <p class="dash-kpi-label">Operations</p>
-          <p class="dash-kpi-value text-gray-900">54</p>
+          <p class="dash-kpi-label">Encounters</p>
+          <p class="dash-kpi-value text-gray-900">{{ summary()?.totalEncounters || 0 }}</p>
         </div>
       </div>
       @if (chartsReady()) {
