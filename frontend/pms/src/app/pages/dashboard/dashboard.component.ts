@@ -1,4 +1,4 @@
-import { Component, inject, PLATFORM_ID, signal, afterNextRender } from '@angular/core';
+import { Component, inject, PLATFORM_ID, signal, afterNextRender, OnInit } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ChartComponent } from 'ng-apexcharts';
@@ -13,7 +13,8 @@ import type {
   ApexStroke,
   ApexTooltip,
   ApexXAxis,
-  ApexNonAxisChartSeries
+  ApexNonAxisChartSeries,
+  ApexMarkers
 } from 'ng-apexcharts';
 
 import { AnalyticsService } from '../../services/analytics/analytics.service';
@@ -28,7 +29,7 @@ type ChartTab = 'daily' | 'weekly' | 'monthly';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   userName = '';
 
@@ -37,39 +38,71 @@ export class DashboardComponent {
 
   chartTab = signal<ChartTab>('daily');
 
-  readonly appointmentDays = [
-    { dow: 'Sat', day: 9, active: false },
-    { dow: 'Sun', day: 10, active: false },
-    { dow: 'Mon', day: 11, active: true },
-    { dow: 'Tue', day: 12, active: false },
-    { dow: 'Wed', day: 13, active: false },
-    { dow: 'Thu', day: 14, active: false },
-    { dow: 'Fri', day: 15, active: false }
-  ];
-
-  readonly todayAppointments = [
-    { name: 'Bob Johnson', type: 'Routine Check-Up', doctor: 'Dr. Sharma', time: '09:30 AM' },
-    { name: 'Maria Garcia', type: 'Follow-up', doctor: 'Dr. Lee', time: '10:15 AM' },
-    { name: 'James Wilson', type: 'Task', doctor: 'Dr. Sharma', time: '11:00 AM' },
-    { name: 'Anna Müller', type: 'Consultation', doctor: 'Dr. Patel', time: '02:00 PM' }
-  ];
-
-  readonly calendarWeeks: (number | null)[][] = [
-    [null, null, null, 1, 2, 3, 4],
-    [5, 6, 7, 8, 9, 10, 11],
-    [12, 13, 14, 15, 16, 17, 18],
-    [19, 20, 21, 22, 23, 24, 25],
-    [26, 27, 28, 29, 30, 31, null]
-  ];
-
-  readonly flatCalendarCells = this.calendarWeeks.flatMap((week, wi) =>
-    week.map((cell, ci) => ({
-      cell,
-      id: `${wi}-${ci}`
-    }))
-  );
+  appointmentDays = signal<{ dow: string, day: number, active: boolean }[]>([]);
+  private allAppointments: any[] = [];
+  appointmentsList = signal<any[]>([]);
+  flatCalendarCells: { cell: number | null, id: string }[] = [];
+  currentMonthName = '';
 
   /** Sparklines — Cliniva-style KPI row */
+
+  sparkXaxis: ApexXAxis = {
+    type: 'category',
+    categories: [],
+    labels: { show: false },
+    axisBorder: { show: false },
+    axisTicks: { show: false }
+  };
+
+  sparkMarkers: ApexMarkers = {
+    size: 0,
+    strokeColors: '#fff',
+    strokeWidth: 2,
+    hover: {
+      size: 5,
+    }
+  };
+
+  sparkTooltipAppointments: ApexTooltip = {
+    custom: ({ series, seriesIndex, dataPointIndex }) => {
+      const date = this.sparkXaxis.categories[dataPointIndex] || '';
+      const val = series[seriesIndex][dataPointIndex];
+      return `<div class="bg-white px-2 py-1 text-xs border border-gray-200 rounded shadow font-medium text-gray-700">
+                ${date}: <span class="text-violet-600 font-bold">${val} Appointments</span>
+              </div>`;
+    }
+  };
+
+  sparkTooltipEncounters: ApexTooltip = {
+    custom: ({ series, seriesIndex, dataPointIndex }) => {
+      const date = this.sparkXaxis.categories[dataPointIndex] || '';
+      const val = series[seriesIndex][dataPointIndex];
+      return `<div class="bg-white px-2 py-1 text-xs border border-gray-200 rounded shadow font-medium text-gray-700">
+                ${date}: <span class="text-orange-600 font-bold">${val} Encounters</span>
+              </div>`;
+    }
+  };
+
+  sparkTooltipPatients: ApexTooltip = {
+    custom: ({ series, seriesIndex, dataPointIndex }) => {
+      const date = this.sparkXaxis.categories[dataPointIndex] || '';
+      const val = series[seriesIndex][dataPointIndex];
+      return `<div class="bg-white px-2 py-1 text-xs border border-gray-200 rounded shadow font-medium text-gray-700">
+                ${date}: <span class="text-green-600 font-bold">${val} New Patients</span>
+              </div>`;
+    }
+  };
+
+  sparkTooltipEarning: ApexTooltip = {
+    custom: ({ series, seriesIndex, dataPointIndex }) => {
+      const date = this.sparkXaxis.categories[dataPointIndex] || '';
+      const val = series[seriesIndex][dataPointIndex];
+      return `<div class="bg-white px-2 py-1 text-xs border border-gray-200 rounded shadow font-medium text-gray-700">
+                ${date}: <span class="text-blue-600 font-bold">$${val.toLocaleString()}</span>
+              </div>`;
+    }
+  };
+
   sparkAppointments: ApexAxisChartSeries = [
     { name: 'a', data: [12, 18, 14, 22, 19, 28, 32, 26, 35, 40, 38, 45] }
   ];
@@ -249,26 +282,111 @@ export class DashboardComponent {
     };
     this.patientSeries = [...sets[tab]];
   }
+  
+  onSelectDay(selectedDay: number) {
+    this.appointmentDays.update(days => days.map(d => ({
+      ...d,
+      active: d.day === selectedDay
+    })));
+    this.filterAppointmentsByDay(selectedDay);
+  }
 
   // Analytics data
   private analyticsService = inject(AnalyticsService);
   summary = signal<DashboardSummary | null>(null);
 
   ngOnInit() {
+    this.generateWeekStrip();
+    this.generateCalendar();
     this.loadDashboardData();
   }
 
-  loadDashboardData() {
+  generateWeekStrip() {
+    const today = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay()); // Ir al domingo
+
+    const arr = Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      return {
+        dow: days[d.getDay()],
+        day: d.getDate(),
+        active: d.getDate() === today.getDate() && d.getMonth() === today.getMonth()
+      };
+    });
+    this.appointmentDays.set(arr);
+  }
+
+  generateCalendar() {
+    const today = new Date();
+    this.currentMonthName = today.toLocaleString('default', { month: 'long', year: 'numeric' }); // "May 2026"
+    
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const cells: { cell: number | null, id: string }[] = [];
+    let dayCounter = 1;
+
+    for (let i = 0; i < 42; i++) {
+      if (i < firstDay || dayCounter > daysInMonth) {
+        cells.push({ cell: null, id: `empty-${i}` });
+      } else {
+        cells.push({ cell: dayCounter, id: `day-${dayCounter}` });
+        dayCounter++;
+      }
+    }
+    this.flatCalendarCells = cells;
+  }
+
+  isToday(day: number): boolean {
+    const today = new Date();
+    return day === today.getDate();
+  }
+
+  getDayData(day: number) {
+    if (!this.summary() || !this.summary()?.calendarActiveDays) return null;
+    return this.summary()?.calendarActiveDays.find(d => d.day === day) || null;
+  }
+
+    loadDashboardData() {
     this.analyticsService.getSummary().subscribe(data => {
       this.summary.set(data);
-      this.updateCharts(data);
+      this.allAppointments = data.monthlyAppointments; 
+      const today = new Date().getDate();
+      this.filterAppointmentsByDay(today);
+      this.updatePatientChart(data);
+    });
+    
+
+    this.analyticsService.getSparklines().subscribe(data => {
+      this.sparkXaxis = { ...this.sparkXaxis, categories: data.dates };
+      this.sparkAppointments = [{ name: 'Appointments', data: data.appointmentsHistory }];
+      this.sparkOperations = [{ name: 'Encounters', data: data.encountersHistory }];
+      this.sparkPatients = [{ name: 'New Patients', data: data.patientsHistory }];
+      this.sparkEarning = [{ name: 'Earning', data: data.earningsHistory }];
     });
   }
 
-  updateCharts(data: DashboardSummary) {
-    this.patientSeries = data.topConditions.map(c => c.patientCount);
-    this.patientLabels = data.topConditions.map(c => c.conditionName);
-    
-    // Similar logic can be applied to update other charts based on the summary data...
+  private filterAppointmentsByDay(day: number) {
+    const filtered = this.allAppointments.filter(a => {
+      const apptDate = new Date(a.fullDate);
+      return apptDate.getDate() === day;
+    });
+    this.appointmentsList.set(filtered);
+  }
+
+  updatePatientChart(data: DashboardSummary) {
+    if (data.topConditions && data.topConditions.length > 0) {
+      this.patientSeries = data.topConditions.map(c => c.patientCount);
+      this.patientLabels = data.topConditions.map(c => c.conditionName);
+    } else {
+      this.patientSeries = [100]; 
+      this.patientLabels = ['Conditions data not available'];
+      this.patientColors = ['#575758'];
+    }
   }
 }

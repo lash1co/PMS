@@ -438,6 +438,14 @@
   color: #374151;
   font-weight: 500;
   position: relative;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  &:hover:not(.dash-cal-empty) {
+    background: #ede9fe;
+    color: #7c3aed;
+    font-weight: 700;
+  }
 }
 
 .dash-cal-empty {

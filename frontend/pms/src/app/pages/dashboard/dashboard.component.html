@@ -47,7 +47,9 @@
           [fill]="sparkFillPurple"
           [colors]="sparkColorsPurple"
           [dataLabels]="sparkDataLabels"
-          [tooltip]="sparkTooltip"
+          [tooltip]="sparkTooltipAppointments"
+          [xaxis]="sparkXaxis"
+          [markers]="sparkMarkers"
         />
       } @else {
         <div class="dash-chart-ph" aria-hidden="true"></div>
@@ -72,7 +74,9 @@
           [fill]="sparkFillOrange"
           [colors]="sparkColorsOrange"
           [dataLabels]="sparkDataLabels"
-          [tooltip]="sparkTooltip"
+          [tooltip]="sparkTooltipEncounters"
+          [xaxis]="sparkXaxis"
+          [markers]="sparkMarkers"
         />
       } @else {
         <div class="dash-chart-ph" aria-hidden="true"></div>
@@ -86,7 +90,7 @@
         </div>
         <div class="dash-kpi-text">
           <p class="dash-kpi-label">New Patients</p>
-          <p class="dash-kpi-value text-gray-900">129</p>
+          <p class="dash-kpi-value text-gray-900">{{ summary()?.newPatients || 0 }}</p>
         </div>
       </div>
       @if (chartsReady()) {
@@ -97,7 +101,9 @@
           [fill]="sparkFillGreen"
           [colors]="sparkColorsGreen"
           [dataLabels]="sparkDataLabels"
-          [tooltip]="sparkTooltip"
+          [tooltip]="sparkTooltipPatients"
+          [xaxis]="sparkXaxis"
+          [markers]="sparkMarkers"
         />
       } @else {
         <div class="dash-chart-ph" aria-hidden="true"></div>
@@ -111,7 +117,7 @@
         </div>
         <div class="dash-kpi-text">
           <p class="dash-kpi-label">Earning</p>
-          <p class="dash-kpi-value text-gray-900">20,125</p>
+          <p class="dash-kpi-value text-gray-900">{{ (summary()?.totalEarnings || 0) | currency }}</p>
         </div>
       </div>
       @if (chartsReady()) {
@@ -122,7 +128,9 @@
           [fill]="sparkFillBlue"
           [colors]="sparkColorsBlue"
           [dataLabels]="sparkDataLabels"
-          [tooltip]="sparkTooltip"
+          [tooltip]="sparkTooltipEarning"
+          [xaxis]="sparkXaxis"
+          [markers]="sparkMarkers"
         />
       } @else {
         <div class="dash-chart-ph" aria-hidden="true"></div>
@@ -134,7 +142,7 @@
   <section class="dash-mid-grid">
     <article class="dash-card dash-mid-card">
       <div class="dash-card-head">
-        <h2 class="dash-card-title">Patient Chart</h2>
+        <h2 class="dash-card-title">Patient Conditions Chart</h2>
         <div class="dash-tabs" role="tablist">
           <button
             type="button"
@@ -189,65 +197,57 @@
         <span class="dash-card-meta">May 2026</span>
       </div>
       <div class="dash-date-strip">
-        @for (d of appointmentDays; track d.day) {
+        @for (d of appointmentDays(); track d.day) {
           <button
             type="button"
-            class="dash-date-cell"
+            class="dash-date-cell transition-all hover:bg-violet-50 hover:border-violet-300 cursor-pointer"
             [class.dash-date-cell-active]="d.active"
-          >
+            (click)="onSelectDay(d.day)">
             <span class="dash-date-dow">{{ d.dow }}</span>
             <span class="dash-date-num">{{ d.day }}</span>
           </button>
         }
-      </div>
+</div>
       <ul class="dash-appt-list">
-        @for (a of todayAppointments; track a.name + a.time) {
+        @for (a of appointmentsList(); track a.time) {
           <li class="dash-appt-row">
-            <div class="dash-appt-avatar">{{ a.name.charAt(0) }}</div>
+            <div class="dash-appt-avatar">{{ a.patientName.charAt(0) }}</div>
             <div class="dash-appt-main">
-              <p class="dash-appt-name">{{ a.name }}</p>
-              <p class="dash-appt-meta">{{ a.type }} · {{ a.doctor }}</p>
+              <p class="dash-appt-name">{{ a.patientName }}</p>
+              <p class="dash-appt-meta">{{ a.type }} · {{ a.doctorName }}</p>
             </div>
             <span class="dash-appt-time">{{ a.time }}</span>
           </li>
+        }
+        @if (appointmentsList().length === 0) {
+          <li class="text-sm text-gray-500 text-center py-4">No appointments scheduled for the selected day.</li>
         }
       </ul>
     </article>
 
     <article class="dash-card dash-mid-card dash-cal-card">
       <div class="dash-card-head">
-        <h2 class="dash-card-title">May 2026</h2>
+        <h2 class="dash-card-title">{{ currentMonthName }}</h2>
       </div>
       <div class="dash-cal-legend">
-        <span><i class="dot dot-b"></i> Surgery</span>
-        <span><i class="dot dot-r"></i> Polyclinic</span>
-        <span><i class="dot dot-g"></i> Evaluation</span>
+        <span><i class="dot dot-b"></i> Scheduled</span>
+        <span><i class="dot dot-g"></i> Completed</span>
       </div>
       <div class="dash-cal-grid">
-        <span class="dash-cal-dow">Su</span>
-        <span class="dash-cal-dow">Mo</span>
-        <span class="dash-cal-dow">Tu</span>
-        <span class="dash-cal-dow">We</span>
-        <span class="dash-cal-dow">Th</span>
-        <span class="dash-cal-dow">Fr</span>
-        <span class="dash-cal-dow">Sa</span>
+        <span class="dash-cal-dow">Su</span><span class="dash-cal-dow">Mo</span><span class="dash-cal-dow">Tu</span>
+        <span class="dash-cal-dow">We</span><span class="dash-cal-dow">Th</span><span class="dash-cal-dow">Fr</span><span class="dash-cal-dow">Sa</span>
+        
         @for (item of flatCalendarCells; track item.id) {
           @if (item.cell === null) {
             <span class="dash-cal-cell dash-cal-empty"></span>
           } @else {
-            <span class="dash-cal-cell" [class.dash-cal-today]="item.cell === 13">
+            <span class="dash-cal-cell" [class.dash-cal-today]="isToday(item.cell)">
               {{ item.cell }}
-              @if (item.cell === 3 || item.cell === 11 || item.cell === 18) {
+              
+              @if (getDayData(item.cell); as dayData) {
                 <span class="dash-cal-dots">
-                  @if (item.cell === 3 || item.cell === 11) {
-                    <i class="dot dot-b"></i>
-                  }
-                  @if (item.cell === 11) {
-                    <i class="dot dot-r"></i>
-                  }
-                  @if (item.cell === 18) {
-                    <i class="dot dot-g"></i>
-                  }
+                  @if (dayData.hasScheduled) { <i class="dot dot-b"></i> }
+                  @if (dayData.hasCompleted) { <i class="dot dot-g"></i> }
                 </span>
               }
             </span>
@@ -283,14 +283,14 @@
 
     <article class="dash-card dash-bot-side">
       <h2 class="dash-card-title mb-1">Total Appointments</h2>
-      <p class="dash-big-num">128</p>
+      <p class="dash-big-num">{{ summary()?.totalAppointments || 0 }}</p>
       <div class="dash-stat-blocks">
         <div class="dash-stat-block bg-blue-50 border border-blue-100">
-          <span class="text-sm text-blue-800 font-medium">73</span>
+          <span class="text-sm text-blue-800 font-medium">{{ summary()?.completedAppointments || 0 }}</span>
           <span class="text-xs text-blue-600/80">Completed</span>
         </div>
         <div class="dash-stat-block bg-orange-50 border border-orange-100">
-          <span class="text-sm text-orange-800 font-medium">55</span>
+          <span class="text-sm text-orange-800 font-medium">{{ summary()?.upcomingAppointments || 0 }}</span>
           <span class="text-xs text-orange-600/80">Upcoming</span>
         </div>
       </div>
