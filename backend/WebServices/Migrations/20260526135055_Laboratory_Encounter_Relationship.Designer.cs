@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebServices.DataAccess;
 
@@ -11,9 +12,11 @@ using WebServices.DataAccess;
 namespace WebServices.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260526135055_Laboratory_Encounter_Relationship")]
+    partial class Laboratory_Encounter_Relationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -371,7 +374,7 @@ namespace WebServices.Migrations
 
                     b.HasIndex("LaboratoryId");
 
-                    b.ToTable("EncounterLaboratoriesDetails");
+                    b.ToTable("EncounterLaboratoriesDetail");
                 });
 
             modelBuilder.Entity("Domain.Entities.Insurance", b =>

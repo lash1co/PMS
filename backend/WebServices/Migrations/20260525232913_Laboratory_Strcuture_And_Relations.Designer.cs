@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebServices.DataAccess;
 
@@ -11,9 +12,11 @@ using WebServices.DataAccess;
 namespace WebServices.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260525232913_Laboratory_Strcuture_And_Relations")]
+    partial class Laboratory_Strcuture_And_Relations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -327,53 +330,6 @@ namespace WebServices.Migrations
                     b.ToTable("Encounters");
                 });
 
-            modelBuilder.Entity("Domain.Entities.EncounterLaboratories", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly>("DateOrdered")
-                        .HasColumnType("date");
-
-                    b.Property<int?>("EncounterId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LaboratoryStatus")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EncounterId");
-
-                    b.ToTable("EncounterLaboratories");
-                });
-
-            modelBuilder.Entity("Domain.Entities.EncounterLaboratoriesDetail", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("EncounterLaboratoriesId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("LaboratoryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EncounterLaboratoriesId");
-
-                    b.HasIndex("LaboratoryId");
-
-                    b.ToTable("EncounterLaboratoriesDetails");
-                });
-
             modelBuilder.Entity("Domain.Entities.Insurance", b =>
                 {
                     b.Property<int>("Id")
@@ -545,8 +501,6 @@ namespace WebServices.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -998,30 +952,6 @@ namespace WebServices.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("Domain.Entities.EncounterLaboratories", b =>
-                {
-                    b.HasOne("Domain.Entities.Encounter", "Encounter")
-                        .WithMany("Laboratories")
-                        .HasForeignKey("EncounterId");
-
-                    b.Navigation("Encounter");
-                });
-
-            modelBuilder.Entity("Domain.Entities.EncounterLaboratoriesDetail", b =>
-                {
-                    b.HasOne("Domain.Entities.EncounterLaboratories", "EncounterLaboratories")
-                        .WithMany("LaboratoriesDetails")
-                        .HasForeignKey("EncounterLaboratoriesId");
-
-                    b.HasOne("Domain.Entities.Laboratory", "Laboratory")
-                        .WithMany("EncounterLaboratoriesDetail")
-                        .HasForeignKey("LaboratoryId");
-
-                    b.Navigation("EncounterLaboratories");
-
-                    b.Navigation("Laboratory");
-                });
-
             modelBuilder.Entity("Domain.Entities.Insurance", b =>
                 {
                     b.HasOne("Domain.Entities.Patient", "Patient")
@@ -1059,6 +989,17 @@ namespace WebServices.Migrations
                         .IsRequired();
 
                     b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Laboratory", b =>
+                {
+                    b.HasOne("Domain.Entities.Encounter", "Encounter")
+                        .WithMany("Laboratories")
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Encounter");
                 });
 
             modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
@@ -1143,19 +1084,9 @@ namespace WebServices.Migrations
                     b.Navigation("Procedures");
                 });
 
-            modelBuilder.Entity("Domain.Entities.EncounterLaboratories", b =>
-                {
-                    b.Navigation("LaboratoriesDetails");
-                });
-
             modelBuilder.Entity("Domain.Entities.Invoice", b =>
                 {
                     b.Navigation("InvoiceDetails");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Laboratory", b =>
-                {
-                    b.Navigation("EncounterLaboratoriesDetail");
                 });
 
             modelBuilder.Entity("Domain.Entities.Patient", b =>
