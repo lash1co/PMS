@@ -1,30 +1,44 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class BillingService {
-  private apiUrl = 'http://localhost:5231/api/invoices';
+  private apiUrl = `${environment.apiUrl}/api/invoices`;
   constructor(private http: HttpClient) { }
 
   getPendingInvoices(): Observable<PendingInvoiceInterface[]> {
     return this.http.get<PendingInvoiceInterface[]>(this.apiUrl, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('pms_token')}`
-      }
+      headers: this.getAuthHeaders()
     });
   }
 
   saveInvoiceBilling(billing: PendingInvoiceInterface): Observable<any> {
     var billingUri = `${this.apiUrl}/createBilling`;
     return this.http.post<any>(billingUri, billing, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('pms_token')}`
-      }
+      headers: this.getAuthHeaders()
     });
+  }
+
+  getActiveInvoices(): Observable<ActiveInvoiceInterface[]> {
+    return this.http.get<ActiveInvoiceInterface[]>(`${this.apiUrl}/active`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  registerInvoicePayment(invoiceId: number, payment: RegisterPaymentInterface): Observable<ActiveInvoiceInterface> {
+    return this.http.post<ActiveInvoiceInterface>(`${this.apiUrl}/${invoiceId}/payments`, payment, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  private getAuthHeaders(): { Authorization: string } {
+    const token = typeof localStorage === 'undefined' ? '' : localStorage.getItem('pms_token');
+    return { Authorization: `Bearer ${token}` };
   }
 
 }

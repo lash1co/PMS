@@ -63,7 +63,12 @@ namespace Domain.Entities
         /// <summary>
         /// Details of the invoice, including individual line items and their respective costs. This collection may be null if there are no details associated with the invoice.
         /// </summary>
-        public IEnumerable<InvoiceDetail>? InvoiceDetails { get; set; } = default!;
+        public ICollection<InvoiceDetail>? InvoiceDetails { get; set; } = default!;
+
+        /// <summary>
+        /// Payments registered against this invoice.
+        /// </summary>
+        public ICollection<Payment>? Payments { get; set; } = default!;
 
         /// <summary>
         /// Parameterless constructor required by Entity Framework Core.

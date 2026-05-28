@@ -59,9 +59,9 @@ namespace WebServices.Repositories.Analytics
             var newPatients = await _context.DBPatients
                 .CountAsync(p => p.CreatedAt >= startDate && p.CreatedAt <= endDate);
 
-            var totalEarnings = await _context.DBInvoices
-                .Where(i => i.IssuedDate >= startDate && i.IssuedDate <= endDate)
-                .SumAsync(i => i.PaidAmount);
+            var totalEarnings = await _context.DBPayments
+                .Where(p => p.PaymentDate >= startDate && p.PaymentDate <= endDate)
+                .SumAsync(p => p.Amount);
 
             var topConditions = await _context.Conditions
                 .GroupBy(c => c.ClinicalStatus)
@@ -151,9 +151,9 @@ namespace WebServices.Repositories.Analytics
                 .Select(p => p.CreatedAt)
                 .ToListAsync();
 
-            var invoices = await _context.DBInvoices
-                .Where(i => i.IssuedDate >= startDate && i.IssuedDate < endDate.AddDays(1))
-                .Select(i => new { i.IssuedDate, i.PaidAmount })
+            var payments = await _context.DBPayments
+                .Where(p => p.PaymentDate >= startDate && p.PaymentDate < endDate.AddDays(1))
+                .Select(p => new { p.PaymentDate, p.Amount })
                 .ToListAsync();
 
             var dto = new DashboardSparklinesDto();
@@ -167,7 +167,7 @@ namespace WebServices.Repositories.Analytics
                 dto.AppointmentsHistory.Add(appointments.Count(a => a.Date == currentDay));
                 dto.EncountersHistory.Add(encounters.Count(e => e.Date == currentDay));
                 dto.PatientsHistory.Add(patients.Count(p => p.Date == currentDay));
-                dto.EarningsHistory.Add(invoices.Where(i => i.IssuedDate.Date == currentDay).Sum(i => i.PaidAmount));
+                dto.EarningsHistory.Add(payments.Where(p => p.PaymentDate.Date == currentDay).Sum(p => p.Amount));
             }
 
             return dto;

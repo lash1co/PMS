@@ -35,6 +35,9 @@ namespace WebServices.DataAccess
         /// <summary>Financial invoices billed to patients.</summary>
         public DbSet<Invoice> DBInvoices { get; set; }
 
+        /// <summary>Payments registered against financial invoices.</summary>
+        public DbSet<Payment> DBPayments { get; set; }
+
         /// <summary>Medical insurance policies linked to patients.</summary>
         public DbSet<Insurance> DBInsurances { get; set; }
 
@@ -182,6 +185,21 @@ namespace WebServices.DataAccess
             modelBuilder.Entity<Invoice>()
                 .HasOne(i => i.Patient)
                 .WithMany(p => p.Invoices);
+            modelBuilder.Entity<Invoice>()
+                .HasIndex("PatientId")
+                .HasFilter("[Status] IN (1, 3)")
+                .IsUnique();
+            modelBuilder.Entity<InvoiceDetail>().Property(i => i.UnitPrice).HasPrecision(18, 2);
+            modelBuilder.Entity<InvoiceDetail>().Property(i => i.Price).HasPrecision(18, 2);
+
+            modelBuilder.Entity<Payment>().HasKey(p => p.Id);
+            modelBuilder.Entity<Payment>().Property(p => p.Id).ValueGeneratedOnAdd();
+            modelBuilder.Entity<Payment>().Property(p => p.Amount).HasPrecision(18, 2);
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Invoice)
+                .WithMany(i => i.Payments)
+                .HasForeignKey(p => p.InvoiceId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Insurance>().HasKey(i => i.Id);
             modelBuilder.Entity<Insurance>().Property(i => i.Id).ValueGeneratedOnAdd();

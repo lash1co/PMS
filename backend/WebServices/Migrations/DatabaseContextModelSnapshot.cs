@@ -500,7 +500,9 @@ namespace WebServices.Migrations
 
                     b.HasIndex("EncounterId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .IsUnique()
+                        .HasFilter("[Status] IN (1, 3)");
 
                     b.ToTable("DBInvoices");
                 });
@@ -567,6 +569,43 @@ namespace WebServices.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Laboratories");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenceNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("DBPayments");
                 });
 
             modelBuilder.Entity("Domain.Entities.Medication", b =>
@@ -1061,6 +1100,17 @@ namespace WebServices.Migrations
                     b.Navigation("Invoice");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("Domain.Entities.Invoice", "Invoice")
+                        .WithMany("Payments")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
+                });
+
             modelBuilder.Entity("Domain.Entities.PrescriptionMedication", b =>
                 {
                     b.HasOne("Domain.Entities.Medication", "Medication")
@@ -1151,6 +1201,8 @@ namespace WebServices.Migrations
             modelBuilder.Entity("Domain.Entities.Invoice", b =>
                 {
                     b.Navigation("InvoiceDetails");
+
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("Domain.Entities.Laboratory", b =>

@@ -15,13 +15,28 @@ namespace WebServices.Controllers.Invoices
     /// Includes the PatientId to link the invoice to a specific patient.
     /// </summary>
     public record InvoiceRequestRecord(int PatientId, decimal Amount, DateTime DueDate);
+    public record PaymentRequestRecord(decimal Amount, string? PaymentMethod, string? ReferenceNumber, string? Notes);
+    public record InvoicePaymentRecord(int Id, decimal Amount, DateTime PaymentDate, string? PaymentMethod, string? ReferenceNumber, string? Notes);
+    public record InvoiceDetailRecord(int Id, string Code, decimal UnitPrice, int Quantity, decimal Price, string Description);
+    public record InvoiceResponseRecord(
+        int Id,
+        string PatientName,
+        decimal Amount,
+        decimal PaidAmount,
+        decimal Balance,
+        InvoiceStatus Status,
+        DateTime IssuedDate,
+        DateTime DueDate,
+        DateTime? PaidDate,
+        IEnumerable<InvoiceDetailRecord> InvoiceDetails,
+        IEnumerable<InvoicePaymentRecord> Payments);
 
     /// <summary>
     /// API Controller responsible for managing billing and invoices.
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize] // Descomenta esto si las facturas requieren que el usuario esté logueado
+    [Authorize]
     public class InvoicesController : ControllerBase
     {
         private readonly IConfiguration _config;
@@ -51,7 +66,6 @@ namespace WebServices.Controllers.Invoices
         /// Pending invoices are those associated with encounters that have not yet been paid.
         /// </summary>
         [HttpGet]
-        [Authorize]
         public async Task<ActionResult<IEnumerable<PendingInvoices>>> GetPendingInvoices()
         {
             var paidEncounters = await _dbContext.DBInvoices
@@ -126,8 +140,16 @@ namespace WebServices.Controllers.Invoices
         /// <param name="request">The data required to create the invoice, including PatientId.</param>
         /// <returns>A success message and the new invoice ID.</returns>
         [HttpPost("createInvoice")]
+        [Authorize]
         public async Task<IActionResult> CreateInvoice([FromBody] InvoiceRequestRecord request)
         {
+            var validationProcess = new TokenValidationProcess(_config, _dbContext);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            if (!authResult.Value.tokenIsValid)
+            {
+                return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
+            }
+
             // 1. Verificar que el paciente exista
             var patientEntity = await _dbContext.DBPatients
                 .Include(p => p.Invoices)
@@ -140,6 +162,8 @@ namespace WebServices.Controllers.Invoices
 
             try
             {
+                _invoiceProcess.EnsurePatientCanCreateInvoice(patientEntity);
+
                 // 2. Crear la factura usando el proceso de negocio adecuado
                 // Nota: Si la lógica de creación aún vive en PatientProcess, puedes usar _patientProcess.CreateInvoice. 
                 // Lo ideal sería mover esa lógica a _invoiceProcess.CreateInvoice en un futuro.
@@ -148,6 +172,8 @@ namespace WebServices.Controllers.Invoices
                     request.Amount,
                     request.DueDate
                 );
+                newInvoice.Patient = patientEntity;
+                _dbContext.DBInvoices.Add(newInvoice);
 
                 // 3. Guardar en base de datos
                 await _dbContext.SaveChangesAsync();
@@ -162,7 +188,6 @@ namespace WebServices.Controllers.Invoices
 
         //Accessible via api/invoices/createBilling
         [HttpPost("createBilling")]
-        [Authorize]
         public async Task<ActionResult<UpsertRequest>> CreateBilling([FromBody] InvoiceRequest billingRecord)
         {
             var validationProcess = new TokenValidationProcess(_config, _dbContext);
@@ -174,12 +199,22 @@ namespace WebServices.Controllers.Invoices
 
             var encounter = await _dbContext.Encounters
                 .Include(x => x.Patient)
+                    .ThenInclude(p => p.Invoices)
                 .Where(e => e.Id == billingRecord.EncounterId)
                 .FirstOrDefaultAsync();
 
             if (encounter is null)
             {
                 return NotFound("The specified Encounter does not exist.");
+            }
+
+            try
+            {
+                _invoiceProcess.EnsurePatientCanCreateInvoice(encounter.Patient);
+            }
+            catch (DomainException ex)
+            {
+                return Conflict(new { error = ex.Message });
             }
 
             var billingRepository = new BillingRepository(_dbContext);
@@ -196,13 +231,119 @@ namespace WebServices.Controllers.Invoices
             return Ok(billingProcessResult);
         }
 
+        [HttpGet("active")]
+        public async Task<ActionResult<IEnumerable<InvoiceResponseRecord>>> GetActiveInvoices()
+        {
+            var validationProcess = new TokenValidationProcess(_config, _dbContext);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            if (!authResult.Value.tokenIsValid)
+            {
+                return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
+            }
+
+            var invoices = await _dbContext.DBInvoices
+                .Include(i => i.Patient)
+                .Include(i => i.InvoiceDetails)
+                .Include(i => i.Payments)
+                .Where(i => i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue)
+                .OrderByDescending(i => i.IssuedDate)
+                .ToListAsync();
+
+            return Ok(invoices.Select(ToInvoiceResponse));
+        }
+
+        [HttpGet("{id}/payments")]
+        public async Task<ActionResult<IEnumerable<InvoicePaymentRecord>>> GetInvoicePayments(int id)
+        {
+            var validationProcess = new TokenValidationProcess(_config, _dbContext);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            if (!authResult.Value.tokenIsValid)
+            {
+                return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
+            }
+
+            var invoiceExists = await _dbContext.DBInvoices.AnyAsync(i => i.Id == id);
+            if (!invoiceExists)
+            {
+                return NotFound(new { message = "Invoice not found." });
+            }
+
+            return Ok(await _dbContext.DBPayments
+                .Where(p => p.InvoiceId == id)
+                .OrderByDescending(p => p.PaymentDate)
+                .Select(p => new InvoicePaymentRecord(
+                    p.Id,
+                    p.Amount,
+                    p.PaymentDate,
+                    p.PaymentMethod,
+                    p.ReferenceNumber,
+                    p.Notes))
+                .ToListAsync());
+        }
+
+        [HttpPost("{id}/payments")]
+        public async Task<ActionResult<InvoiceResponseRecord>> RegisterPayment(int id, [FromBody] PaymentRequestRecord request)
+        {
+            var validationProcess = new TokenValidationProcess(_config, _dbContext);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            if (!authResult.Value.tokenIsValid)
+            {
+                return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
+            }
+
+            var invoice = await _dbContext.DBInvoices
+                .Include(i => i.Patient)
+                .Include(i => i.InvoiceDetails)
+                .Include(i => i.Payments)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (invoice is null)
+            {
+                return NotFound(new { message = "Invoice not found." });
+            }
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.PaymentMethod))
+                {
+                    return BadRequest(new { error = "Payment method is required." });
+                }
+
+                _invoiceProcess.RegisterPayment(invoice, request.Amount);
+
+                invoice.Payments ??= new List<Payment>();
+                invoice.Payments.Add(new Payment
+                {
+                    Invoice = invoice,
+                    Amount = request.Amount,
+                    PaymentMethod = request.PaymentMethod,
+                    ReferenceNumber = request.ReferenceNumber,
+                    Notes = request.Notes,
+                    PaymentDate = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(ToInvoiceResponse(invoice));
+            }
+            catch (DomainException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
         /// <summary>
         /// Retrieves a specific invoice by its ID.
         /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<Invoice>> GetInvoice(int id)
         {
-            var invoice = await _dbContext.DBInvoices.FindAsync(id);
+            var invoice = await _dbContext.DBInvoices
+                .Include(i => i.Patient)
+                .Include(i => i.InvoiceDetails)
+                .Include(i => i.Payments)
+                .FirstOrDefaultAsync(i => i.Id == id);
 
             if (invoice == null)
             {
@@ -210,6 +351,27 @@ namespace WebServices.Controllers.Invoices
             }
 
             return invoice;
+        }
+
+        private static InvoiceResponseRecord ToInvoiceResponse(Invoice invoice)
+        {
+            return new InvoiceResponseRecord(
+                invoice.Id,
+                invoice.Patient.LastName + " " + invoice.Patient.FirstName,
+                invoice.Amount,
+                invoice.PaidAmount,
+                invoice.Amount - invoice.PaidAmount,
+                invoice.Status,
+                invoice.IssuedDate,
+                invoice.DueDate,
+                invoice.PaidDate,
+                invoice.InvoiceDetails?
+                    .Select(d => new InvoiceDetailRecord(d.Id, d.Code, d.UnitPrice, d.Quantity, d.Price, d.Description))
+                    .ToList() ?? new List<InvoiceDetailRecord>(),
+                invoice.Payments?
+                    .OrderByDescending(p => p.PaymentDate)
+                    .Select(p => new InvoicePaymentRecord(p.Id, p.Amount, p.PaymentDate, p.PaymentMethod, p.ReferenceNumber, p.Notes))
+                    .ToList() ?? new List<InvoicePaymentRecord>());
         }
     }
 }

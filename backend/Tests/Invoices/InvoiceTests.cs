@@ -58,6 +58,53 @@ namespace Tests.Invoices
         }
 
         [Fact]
+        public void Should_not_allow_paying_cancelled_invoice()
+        {
+            var invoice = new Invoice(1, 1000m, DateTime.Today.AddDays(10));
+            _invoiceProcess.Cancel(invoice);
+
+            Assert.Throws<DomainException>(() => _invoiceProcess.RegisterPayment(invoice, 100m));
+        }
+
+        [Fact]
+        public void Should_not_allow_creating_invoice_when_patient_has_active_invoice()
+        {
+            var patient = new Patient
+            {
+                Id = 1,
+                FirstName = "Jane",
+                LastName = "Doe",
+                DateOfBirth = DateTime.Today.AddYears(-30),
+                Phone = "123",
+                Invoices = new List<Invoice>
+                {
+                    new Invoice(1, 1000m, DateTime.Today.AddDays(10))
+                }
+            };
+
+            Assert.Throws<DomainException>(() => _invoiceProcess.EnsurePatientCanCreateInvoice(patient));
+        }
+
+        [Fact]
+        public void Should_allow_creating_invoice_when_patient_previous_invoice_is_paid()
+        {
+            var paidInvoice = new Invoice(1, 1000m, DateTime.Today.AddDays(10));
+            _invoiceProcess.RegisterPayment(paidInvoice, 1000m);
+
+            var patient = new Patient
+            {
+                Id = 1,
+                FirstName = "Jane",
+                LastName = "Doe",
+                DateOfBirth = DateTime.Today.AddYears(-30),
+                Phone = "123",
+                Invoices = new List<Invoice> { paidInvoice }
+            };
+
+            _invoiceProcess.EnsurePatientCanCreateInvoice(patient);
+        }
+
+        [Fact]
         public void Should_mark_invoice_as_overdue()
         {
             var invoice = new Invoice(1, 500m, DateTime.Today.AddDays(10));
