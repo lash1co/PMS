@@ -17,6 +17,16 @@ namespace WebServices.Repositories
         {
             try
             {
+                if (invoice.InvoiceDetails is null || !invoice.InvoiceDetails.Any())
+                {
+                    return new UpsertRequest { UpsertSuccessfull = false, Message = "Invoice must have at least one detail." };
+                }
+
+                if (invoice.InvoiceDetails.Any(d => d.Quantity <= 0 || d.UnitPrice < 0))
+                {
+                    return new UpsertRequest { UpsertSuccessfull = false, Message = "Invoice details must have valid quantity and unit price." };
+                }
+
                 var totalAmount = invoice.InvoiceDetails
                     .Sum(d => (d.Quantity * d.UnitPrice));
 
@@ -26,11 +36,11 @@ namespace WebServices.Repositories
                         Patient = encounter.Patient,
                         Encounter = encounter,
                         Amount = totalAmount,
-                        PaidAmount = totalAmount,
-                        Status = InvoiceStatus.Paid,
+                        PaidAmount = 0,
+                        Status = InvoiceStatus.Pending,
                         IssuedDate = encounter.StartTime,
                         DueDate = DateTime.UtcNow,
-                        PaidDate = DateTime.UtcNow,
+                        PaidDate = null,
                         CreatedAt = DateTime.UtcNow,
                         InvoiceDetails = invoice.InvoiceDetails
                             .Select(d => new InvoiceDetail
@@ -38,14 +48,14 @@ namespace WebServices.Repositories
                                 Code = d.Code,
                                 UnitPrice = d.UnitPrice,
                                 Quantity = d.Quantity,
-                                Price = d.Price,
+                                Price = d.Quantity * d.UnitPrice,
                                 Description = d.Description,
                             }).ToList(),
                     });
 
                 encounter.Status = EncounterStatus.Completed;
 
-                _databaseContext.SaveChanges();
+                await _databaseContext.SaveChangesAsync();
 
                 return new UpsertRequest { UpsertSuccessfull = true, Message = "Invoice created successfully." };
             }
