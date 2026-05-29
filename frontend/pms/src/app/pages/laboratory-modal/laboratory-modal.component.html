@@ -1,0 +1,118 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+    <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+      <h3 class="text-lg font-semibold text-gray-800">
+        {{ laboratory.Id ? 'Edit Laboratory' : 'Create Laboratory' }}
+      </h3>
+      <button
+        (click)="onClose()"
+        class="text-gray-500 hover:text-gray-700 text-xl"
+        aria-label="Close"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="px-6 py-4">
+      @if (errorMessage()) {
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <form (ngSubmit)="onSave()" class="space-y-4">
+        <div>
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Description</mat-label>
+            <input
+              matInput
+              id="description"
+              [(ngModel)]="formData().description"
+              name="description"
+              (change)="updateFormField('description', $any($event.target).value)"
+              placeholder="Enter description"
+              class="w-full"
+              required
+            />
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Price</mat-label>
+            <input
+              matInput
+              id="price"
+              type="number"
+              [value]="formData().price"
+              (change)="updateFormField('price', $any($event.target).value)"
+              placeholder="Enter price"
+              class="w-full"
+              required
+            />
+          </mat-form-field>
+        </div>
+
+        <div>
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Time to Complete (hours)</mat-label>
+            <input
+              matInput
+              id="timeToCompleteInHours"
+              type="number"
+              [value]="formData().timeToCompleteInHours"
+              (change)="updateFormField('timeToCompleteInHours', $any($event.target).value)"
+              placeholder="Enter time to complete in hours"
+              class="w-full"
+              required
+            />
+          </mat-form-field>
+        </div>
+
+        <div>
+          <label for="noFoodBeforeExecuted" class="block text-sm font-medium text-gray-700 mb-1">
+            No Food before the execution
+          </label>
+          <input
+            type="checkbox"
+            id="noFoodBeforeExecuted"
+            [(ngModel)]="formData().noFoodBeforeExecuted"
+            name="noFoodBeforeExecuted"
+            (change)="updateFormField('noFoodBeforeExecuted', $any($event.target).checked)"
+            class="mr-2"
+          />
+        </div>
+
+        <div>
+          <label for="liquidIngestionBeforeExecuted" class="block text-sm font-medium text-gray-700 mb-1">
+            Liquid Ingestion before the execution
+          </label>
+          <input
+            type="checkbox"
+            id="liquidIngestionBeforeExecuted"
+            [(ngModel)]="formData().liquidIngestionBeforeExecuted"
+            name="liquidIngestionBeforeExecuted"
+            (change)="updateFormField('liquidIngestionBeforeExecuted', $any($event.target).checked)"
+            class="mr-2"
+          />
+        </div>
+      </form>
+    </div>
+
+    <div class="border-t border-gray-200 px-6 py-4 flex gap-3 justify-end">
+      <button
+        (click)="onClose()"
+        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition font-medium"
+      >
+        Cancel
+      </button>
+      <button
+        (click)="onSave()"
+        [disabled]="isSaving()"
+        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {{ isSaving() ? 'Saving...' : 'Save Laboratory' }}
+      </button>
+    </div>
+  </div>
+</div>
