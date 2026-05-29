@@ -1,0 +1,46 @@
+<div class="report-controls no-print">
+  <h2>PMS Reports</h2>
+  <div class="filters">
+    
+    <select [ngModel]="selectedReportType()" (ngModelChange)="selectedReportType.set($event)">
+      <option value="closing">Monthly Closing</option>
+      <option value="morbidity">Morbidity Report (Clinical)</option>
+      <option value="receivable">Accounts Receivable (Financial Global)</option>
+      <option value="efficiency">Appointment Efficiency (Operational)</option>
+    </select>
+
+    <ng-container *ngIf="selectedReportType() !== 'receivable'">
+      <select [ngModel]="selectedMonth()" (ngModelChange)="selectedMonth.set($event)">
+        <option *ngFor="let m of months" [ngValue]="m.value">{{ m.name }}</option>
+      </select>
+      
+      <select [ngModel]="selectedYear()" (ngModelChange)="selectedYear.set($event)">
+        <option *ngFor="let y of years" [ngValue]="y">{{ y }}</option>
+      </select>
+    </ng-container>
+
+    <button class="btn-primary" (click)="generateReport()" [disabled]="isLoading()">
+      {{ isLoading() ? 'Generating...' : 'Generate Report' }}
+    </button>
+    
+    <button class="btn-success" *ngIf="hasData()" (click)="printReport()">
+      🖨️ Print PDF
+    </button>
+  </div>
+</div>
+
+<app-closing-report 
+  *ngIf="closingData() as data" [data]="data">
+</app-closing-report>
+
+<app-morbidity-report 
+  *ngIf="morbidityData() as data" [data]="data">
+</app-morbidity-report>
+
+<app-receivable-report 
+  *ngIf="receivableData() as data" [data]="data">
+</app-receivable-report>
+
+<app-efficiency-report 
+  *ngIf="efficiencyData() as data" [data]="data">
+</app-efficiency-report>
