@@ -13,10 +13,17 @@ namespace WebServices.SharedBusiness.Analytics
         }
 
         public async Task<MonthlyClosingReportDto> GenerateMonthlyClosingReportAsync(int year, int month)
-        {
-            // Here we could add additional business logic before fetching the report data, such as:
-            // validation of role permissions, audit trail of who requested the report 
-            return await _repository.GetMonthlyClosingReportAsync(year, month);
-        }
+            => await _repository.GetMonthlyClosingReportAsync(year, month);
+
+        public async Task<MorbidityReportDto> GenerateMorbidityReportAsync(int year, int month)
+            => await _repository.GetMorbidityReportAsync(year, month);
+
+        public async Task<AccountsReceivableReportDto> GenerateAccountsReceivableReportAsync()
+            => await _repository.GetAccountsReceivableReportAsync();
+
+        public async Task<AppointmentEfficiencyReportDto> GenerateAppointmentEfficiencyReportAsync(int year, int month)
+            => await _repository.GetAppointmentEfficiencyReportAsync(year, month);
+
+
     }
 }

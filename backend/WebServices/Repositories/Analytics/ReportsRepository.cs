@@ -80,6 +80,93 @@ namespace WebServices.Repositories.Analytics
                 },
                 DoctorMetrics = doctorMetrics.OrderByDescending(d => d.RevenueGenerated).ToList()
             };
+
+
+        }
+
+        public async Task<MorbidityReportDto> GetMorbidityReportAsync(int year, int month)
+        {
+            var startDate = new DateTime(year, month, 1).ToUniversalTime();
+            var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+            var conditions = await _context.Conditions
+                .Where(c => c.RecordedDate >= startDate && c.RecordedDate <= endDate)
+                .ToListAsync();
+
+            var totalDiagnoses = conditions.Count;
+
+            var topConditions = conditions
+                .GroupBy(c => new { c.Code, c.DisplayName })
+                .Select(g => new ConditionFrequencyDto
+                {
+                    ConditionCode = g.Key.Code,
+                    ConditionName = g.Key.DisplayName,
+                    Frequency = g.Count(),
+                    Percentage = totalDiagnoses > 0 ? Math.Round((double)g.Count() / totalDiagnoses * 100, 2) : 0
+                })
+                .OrderByDescending(c => c.Frequency)
+                .Take(10) // Top 10 enfermedades
+                .ToList();
+
+            return new MorbidityReportDto
+            {
+                ReportPeriod = $"{startDate:MMMM yyyy}",
+                TotalDiagnoses = totalDiagnoses,
+                TopConditions = topConditions
+            };
+        }
+
+        public async Task<AccountsReceivableReportDto> GetAccountsReceivableReportAsync()
+        {
+            var now = DateTime.UtcNow;
+            // Status 1 = Pending, Status 3 = Overdue
+            var pendingInvoices = await _context.DBInvoices
+                .Include(i => i.Patient)
+                .Where(i => i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue)
+                .ToListAsync();
+
+            var debtors = pendingInvoices.Select(i => new DebtorDto
+            {
+                PatientId = i.PatientId,
+                PatientName = $"{i.Patient!.FirstName} {i.Patient.LastName}",
+                Phone = i.Patient.Phone,
+                InvoiceId = i.Id,
+                AmountOwed = i.Amount - i.PaidAmount,
+                DueDate = i.DueDate,
+                IsOverdue = i.DueDate < now
+            })
+            .OrderByDescending(d => d.AmountOwed)
+            .ToList();
+
+            return new AccountsReceivableReportDto
+            {
+                TotalPendingAmount = debtors.Where(d => !d.IsOverdue).Sum(d => d.AmountOwed),
+                TotalOverdueAmount = debtors.Where(d => d.IsOverdue).Sum(d => d.AmountOwed),
+                Debtors = debtors
+            };
+        }
+
+        public async Task<AppointmentEfficiencyReportDto> GetAppointmentEfficiencyReportAsync(int year, int month)
+        {
+            var startDate = new DateTime(year, month, 1).ToUniversalTime();
+            var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+            var appointments = await _context.DBAppointments
+                .Where(a => a.StartTime >= startDate && a.StartTime <= endDate)
+                .ToListAsync();
+
+            var total = appointments.Count;
+            var completed = appointments.Count(a => a.Status == AppointmentStatus.Completed);
+            var cancelled = appointments.Count(a => a.Status == AppointmentStatus.Cancelled);
+
+            return new AppointmentEfficiencyReportDto
+            {
+                ReportPeriod = $"{startDate:MMMM yyyy}",
+                TotalScheduled = total,
+                TotalCompleted = completed,
+                TotalCancelled = cancelled,
+                CompletionRate = total > 0 ? Math.Round((double)completed / total * 100, 2) : 0
+            };
         }
     }
 }
