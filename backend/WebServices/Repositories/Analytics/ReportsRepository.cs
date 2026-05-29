@@ -146,18 +146,50 @@ namespace WebServices.Repositories.Analytics
             };
         }
 
+        /// <summary>
+        /// Gets a report on appointment efficiency for a given month, including completion rates and growth compared to the previous month.
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <returns></returns>
         public async Task<AppointmentEfficiencyReportDto> GetAppointmentEfficiencyReportAsync(int year, int month)
         {
             var startDate = new DateTime(year, month, 1).ToUniversalTime();
             var endDate = startDate.AddMonths(1).AddTicks(-1);
 
-            var appointments = await _context.DBAppointments
+            var prevStartDate = startDate.AddMonths(-1);
+            var prevEndDate = startDate.AddTicks(-1);
+
+            var currentAppointments = await _context.DBAppointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
                 .Where(a => a.StartTime >= startDate && a.StartTime <= endDate)
                 .ToListAsync();
 
-            var total = appointments.Count;
-            var completed = appointments.Count(a => a.Status == AppointmentStatus.Completed);
-            var cancelled = appointments.Count(a => a.Status == AppointmentStatus.Cancelled);
+            var prevAppointments = await _context.DBAppointments
+                .Where(a => a.StartTime >= prevStartDate && a.StartTime <= prevEndDate)
+                .Select(a => a.Status)
+                .ToListAsync();
+
+            var total = currentAppointments.Count;
+            var completed = currentAppointments.Count(a => a.Status == AppointmentStatus.Completed);
+            var cancelled = currentAppointments.Count(a => a.Status == AppointmentStatus.Cancelled);
+            var currentRate = total > 0 ? Math.Round((double)completed / total * 100, 2) : 0;
+
+            var prevTotal = prevAppointments.Count;
+            var prevCompleted = prevAppointments.Count(s => s == AppointmentStatus.Completed);
+            var prevRate = prevTotal > 0 ? Math.Round((double)prevCompleted / prevTotal * 100, 2) : 0;
+
+            var growth = currentRate - prevRate;
+
+            var details = currentAppointments.Select(a => new AppointmentDetailDto
+            {
+                Date = a.StartTime,
+                PatientName = a.Patient != null ? $"{a.Patient.FirstName} {a.Patient.LastName}" : "Desconocido",
+                DoctorName = a.Doctor != null ? $"Dr. {a.Doctor.Name}" : "Desconocido",
+                Status = a.Status.ToString(),
+                Reason = a.Reason ?? "N/A"
+            }).OrderBy(a => a.Date).ToList();
 
             return new AppointmentEfficiencyReportDto
             {
@@ -165,7 +197,10 @@ namespace WebServices.Repositories.Analytics
                 TotalScheduled = total,
                 TotalCompleted = completed,
                 TotalCancelled = cancelled,
-                CompletionRate = total > 0 ? Math.Round((double)completed / total * 100, 2) : 0
+                CompletionRate = currentRate,
+                PreviousMonthCompletionRate = prevRate,
+                GrowthPercentage = Math.Round(growth, 2),
+                AppointmentsReference = details
             };
         }
     }

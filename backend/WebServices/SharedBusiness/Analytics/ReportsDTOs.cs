@@ -56,6 +56,14 @@
             public DateTime DueDate { get; set; }
             public bool IsOverdue { get; set; }
         }
+        public record AppointmentDetailDto
+        {
+            public DateTime Date { get; set; }
+            public string PatientName { get; set; } = string.Empty;
+            public string DoctorName { get; set; } = string.Empty;
+            public string Status { get; set; } = string.Empty;
+            public string Reason { get; set; } = string.Empty;
+        }
         public record AppointmentEfficiencyReportDto
         {
             public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
@@ -64,6 +72,9 @@
             public int TotalCompleted { get; set; }
             public int TotalCancelled { get; set; }
             public double CompletionRate { get; set; }
+            public double PreviousMonthCompletionRate { get; set; }
+            public double GrowthPercentage { get; set; }
+            public List<AppointmentDetailDto> AppointmentsReference { get; set; } = new();
         }
     }
 }
