@@ -12,7 +12,6 @@ namespace WebServices.Controllers.Laboratory
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class LaboratoryController : Controller
     {
         private readonly IConfiguration _config;
@@ -28,7 +27,8 @@ namespace WebServices.Controllers.Laboratory
             _context = context;
         }
 
-        [HttpGet]
+        [Authorize]
+        [HttpGet]        
         public async Task<ActionResult<List<LabEntity>>> GtLaboratories()
         {
             var validationProcess = new TokenValidationProcess(_config, _context);
@@ -46,6 +46,7 @@ namespace WebServices.Controllers.Laboratory
             return Ok(laboratories);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<UpsertRequest>> CreateLaboratory([FromBody] LabEntity laboratory)
         {
@@ -54,12 +55,6 @@ namespace WebServices.Controllers.Laboratory
             if (!authResult.Value.tokenIsValid)
             {
                 return StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage);
-            }
-
-            var doctor = await _context.Laboratories.FindAsync(laboratory.Id);
-            if (doctor == null)
-            {
-                return NotFound("Laboratory not found.");
             }
 
             var laboratoryRepository = new LaboratoryRepository(_context);
@@ -75,6 +70,7 @@ namespace WebServices.Controllers.Laboratory
             return Ok(createProcessResult);
         }
 
+        [Authorize]
         [HttpPut]
         public async Task<ActionResult<UpsertRequest>> UpdateLaboratory([FromBody] LabEntity laboratory)
         {
@@ -97,6 +93,7 @@ namespace WebServices.Controllers.Laboratory
             return Ok(updateProcessResult);
         }
 
+        [Authorize]
         [HttpDelete]
         public async Task<ActionResult<UpsertRequest>> DeleteLaboratory(int laboratoryId)
         {

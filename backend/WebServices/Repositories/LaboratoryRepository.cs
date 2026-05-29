@@ -29,6 +29,10 @@ namespace WebServices.Repositories
         {
             try
             {
+                var laboratoryIndex = _databaseContext.Laboratories
+                    .OrderByDescending(x => x.Id)
+                    .FirstOrDefault()?.Id ?? 0;
+                laboratory.Id = laboratoryIndex + 1;
                 _databaseContext.Laboratories.Add(laboratory);
                 await _databaseContext.SaveChangesAsync();
                 return new UpsertRequest
