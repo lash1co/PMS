@@ -37,8 +37,18 @@
         public Doctor Doctor { get; set; } = default!;
 
         /// <summary>
+        /// The foreign key for the doctor associated with the appointment.
+        /// </summary>
+        public int DoctorId { get; set; }
+
+        /// <summary>
         /// The patient associated with the appointment.
         /// </summary>
         public Patient Patient { get; set; } = default!;
+
+        /// <summary>
+        /// Gets or sets the unique identifier for the patient.
+        /// </summary>
+        public int PatientId { get; set; }
     }
 }

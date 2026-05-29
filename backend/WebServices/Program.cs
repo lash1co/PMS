@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using WebServices.DataAccess;
+using WebServices.Repositories.Analytics;
 using WebServices.SharedBusiness;
+using WebServices.SharedBusiness.Analytics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,9 @@ builder.Services.AddScoped<InsuranceProcess>();
 builder.Services.AddScoped<AuthenticationProcess>();
 builder.Services.AddScoped<ScheduleProcess>();
 builder.Services.AddScoped<EncounterProcess>();
+
+builder.Services.AddScoped<IReportsRepository, ReportsRepository>();
+builder.Services.AddScoped<IReportsProcess, ReportsProcess>();
 
 // Adding Analytics services
 builder.Services.AddScoped<WebServices.Repositories.Analytics.AnalyticsRepository>();
