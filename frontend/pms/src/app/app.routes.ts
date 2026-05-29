@@ -11,6 +11,7 @@ import { UsersList } from './pages/users-list/users-list';
 import { ScheduleComponent } from './pages/schedule/schedule.component';
 import {PrescriptionsList} from './pages/prescriptions-list/prescriptions-list'
 import { BillingComponent } from './pages/billing.component/billing.component';
+import { ReportsComponent } from './pages/reports/reports.component';
 
 export const routes: Routes = [
 
@@ -33,7 +34,8 @@ export const routes: Routes = [
       { path: 'doctor-rest-time', component: DoctorRestTimeFormComponent },
       { path: 'encounters', component: EncounterComponent },
       { path: 'prescriptions', component: PrescriptionsList },
-      { path: 'billing', component: BillingComponent }
+      { path: 'billing', component: BillingComponent },
+      { path: 'reports', component: ReportsComponent }
     ]
   },
 
