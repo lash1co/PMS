@@ -1,0 +1,82 @@
+<div class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800">Laboratory Management</h2>
+
+      <div class="mt-4 md:mt-0 flex w-full md:w-auto items-center space-x-4">
+        <button
+          (click)="openCreateModal()"
+          class="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition whitespace-nowrap"
+        >
+          + New Laboratory
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto border border-gray-200 rounded-lg">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time to Complete (hours)</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No Food before Execution</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Liquid Ingestion before Execution</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let laboratory of laboratoryData()" class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ laboratory.Id }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{{ laboratory.description }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${{ laboratory.price | number:'1.2-2' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ laboratory.timeToCompleteInHours }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+              @if (laboratory.noFoodBeforeExecuted) {
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Yes
+                </span>
+              }
+              @if (!laboratory.noFoodBeforeExecuted) {
+                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  No
+                </span>
+              }
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+              @if (laboratory.liquidIngestionBeforeExecuted) {
+                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Yes
+                </span>
+              }
+              @if (!laboratory.liquidIngestionBeforeExecuted) {
+                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  No
+                </span>
+              }
+            </td>
+
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button (click)="openEditModal(laboratory)" class="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
+              <button (click)="deleteLaboratory(laboratory.Id)" class="text-red-600 hover:text-red-900">Delete</button>
+            </td>
+          </tr>
+          @if (laboratoryData().length === 0) {
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-gray-500 italic">No laboratories found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  @if (showModal()) {
+    <app-laboratory-modal
+      [laboratory]="currentLaboratory"
+      (save)="saveLaboratory($event)"
+      (close)="closeModal()"
+    ></app-laboratory-modal>
+  }
+</div>

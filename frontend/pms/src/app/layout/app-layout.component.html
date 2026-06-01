@@ -68,6 +68,19 @@
       </a>
 
       <a
+        routerLink="/laboratories"
+        routerLinkActive="layout-nav-link--active"
+        class="layout-nav-link"
+        [title]="sidebarCollapsed() ? 'Laboratories' : ''"
+      >
+        <span class="material-icons layout-nav-ico" aria-hidden="true">local_hospital</span>
+        @if (!sidebarCollapsed()) {
+          <span class="layout-nav-label">Laboratories</span>
+        }
+      </a>
+
+
+      <a
         routerLink="/schedule"
         routerLinkActive="layout-nav-link--active"
         class="layout-nav-link"
