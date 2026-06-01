@@ -21,6 +21,11 @@ namespace Domain.Entities
         public Patient Patient { get; set; } = null!;
 
         /// <summary>
+        /// The unique identifier of the patient associated with this invoice.
+        /// </summary>
+        public int PatientId { get; set; }
+
+        /// <summary>
         /// The total amount to be billed.
         /// </summary>
         public decimal Amount { get; set; }

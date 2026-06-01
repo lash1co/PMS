@@ -139,6 +139,18 @@
           <span class="layout-nav-label">Billing</span>
         }
       </a>
+
+      <a
+        routerLink="/reports"
+        routerLinkActive="layout-nav-link--active"
+        class="layout-nav-link"
+        [title]="sidebarCollapsed() ? 'Reports' : ''"
+      >
+        <span class="material-icons layout-nav-ico" aria-hidden="true">bar_chart</span>
+        @if (!sidebarCollapsed()) {
+          <span class="layout-nav-label">Reports</span>
+        }
+      </a>
     </nav>
 
     <div class="layout-aside-footer">
