@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { EncounterSummaryDto } from '../../Entities/Encounters/Encounter';
 import { EncounterService } from '../../services/encounter/encounter.service';
+import { LaboratoryService } from '../../services/laboratory/laboratory.service';
+import { getPmsUserRole } from '../../utils/storage.util';
 
 @Component({
   selector: 'app-encounter-modal',
@@ -20,16 +22,20 @@ export class EncounterModal implements OnInit {
   @Output() completed = new EventEmitter<void>();
 
   private encounterService = inject(EncounterService);
+  private laboratoryService = inject(LaboratoryService);
 
   // State Signals
-  activeTab = signal<'summary' | 'notes' | 'observations' | 'conditions' | 'allergies' | 'procedures'>('summary');
+  activeTab = signal<'summary' | 'notes' | 'observations' | 'conditions' | 'allergies' | 'procedures' | 'laboratories'>('summary');
   summary = signal<EncounterSummaryDto | null>(null);
+  laboratories = signal<any[]>([]);
   isLoading = signal<boolean>(true);
+  isLoadingLaboratories = signal<boolean>(false);
   isSaving = signal<boolean>(false);
   errorMessage = signal<string>('');
   successMessage = signal<string>('');
 
   isEditingNote = signal<boolean>(false);
+  isDoctor = signal<boolean>((getPmsUserRole() || '').toUpperCase() === 'DOCTOR');
 
   // Form Signals
   noteForm = signal({ subjective: '', objective: '', assessment: '', plan: '' });
@@ -37,6 +43,7 @@ export class EncounterModal implements OnInit {
   conditionForm = signal({ code: '', displayName: '', clinicalStatus: 'Active' });
   allergyForm = signal({ substance: '', criticality: 'Low', reaction: '' });
   procedureForm = signal({ code: '', displayName: '', status: 'Completed' });
+  laboratoryRequestForm = signal<{ laboratoryId: number | null }>({ laboratoryId: null });
 
   
 
@@ -51,6 +58,11 @@ export class EncounterModal implements OnInit {
       (note.assessment?.trim().length ?? 0) >= minLength &&
       (note.plan?.trim().length ?? 0) >= minLength
     );
+  });
+
+  availableLaboratories = computed(() => {
+    const requestedIds = new Set((this.summary()?.laboratories || []).map((lab: any) => lab.laboratoryId));
+    return this.laboratories().filter((lab: any) => !requestedIds.has(lab.id ?? lab.Id));
   });
 
   ngOnInit(): void {
@@ -75,6 +87,9 @@ export class EncounterModal implements OnInit {
         this.isEditingNote.set(!this.isNoteCompleted());
         
         this.isLoading.set(false);
+        if (this.isDoctor()) {
+          this.loadLaboratories();
+        }
       },
       error: () => {
         this.errorMessage.set('Failed to load encounter details.');
@@ -83,9 +98,35 @@ export class EncounterModal implements OnInit {
     });
   }
 
-  setTab(tab: 'summary' | 'notes' | 'observations' | 'conditions' | 'allergies' | 'procedures'): void {
+  private loadLaboratories(): void {
+    if (this.laboratories().length > 0 || this.isLoadingLaboratories()) {
+      return;
+    }
+
+    this.isLoadingLaboratories.set(true);
+    this.laboratoryService.getLaboratories().subscribe({
+      next: (data) => {
+        this.laboratories.set(data);
+        this.isLoadingLaboratories.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Failed to load laboratories.');
+        this.isLoadingLaboratories.set(false);
+      }
+    });
+  }
+
+  setTab(tab: 'summary' | 'notes' | 'observations' | 'conditions' | 'allergies' | 'procedures' | 'laboratories'): void {
+    if (tab === 'laboratories' && !this.isDoctor()) {
+      return;
+    }
+
     this.activeTab.set(tab);
     this.clearMessages();
+
+    if (tab === 'laboratories') {
+      this.loadLaboratories();
+    }
   }
 
   private clearMessages(): void {
@@ -179,6 +220,28 @@ export class EncounterModal implements OnInit {
 
   deleteProcedure(id: number): void {
     this.encounterService.deleteProcedure(this.encounterId, id).subscribe(() => this.loadEncounterData());
+  }
+
+  addLaboratoryRequest(): void {
+    const laboratoryId = this.laboratoryRequestForm().laboratoryId;
+    if (!laboratoryId) {
+      this.errorMessage.set('Please select a laboratory.');
+      return;
+    }
+
+    this.isSaving.set(true);
+    this.encounterService.addLaboratoryRequest(this.encounterId, laboratoryId).subscribe({
+      next: () => {
+        this.successMessage.set('Laboratory request created successfully.');
+        this.laboratoryRequestForm.set({ laboratoryId: null });
+        this.isSaving.set(false);
+        this.loadEncounterData();
+      },
+      error: (error) => {
+        this.errorMessage.set(error?.error || 'Failed to create laboratory request.');
+        this.isSaving.set(false);
+      }
+    });
   }
 
   completeEncounter(): void {

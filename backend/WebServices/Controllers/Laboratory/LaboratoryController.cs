@@ -21,6 +21,12 @@ namespace WebServices.Controllers.Laboratory
             UserConstants.RoleConstants.AdminRole
         };
 
+        private readonly List<string> _readAuthorizedRoles = new List<string>
+        {
+            UserConstants.RoleConstants.AdminRole,
+            UserConstants.RoleConstants.DoctorRole
+        };
+
         public LaboratoryController(IConfiguration config, DatabaseContext context)
         {
             _config = config;
@@ -32,7 +38,7 @@ namespace WebServices.Controllers.Laboratory
         public async Task<ActionResult<List<LabEntity>>> GtLaboratories()
         {
             var validationProcess = new TokenValidationProcess(_config, _context);
-            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _readAuthorizedRoles);
 
             if (!authResult.Value.tokenIsValid)
             {

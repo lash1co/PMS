@@ -53,8 +53,6 @@ namespace WebServices.Repositories
                             }).ToList(),
                     });
 
-                encounter.Status = EncounterStatus.Completed;
-
                 await _databaseContext.SaveChangesAsync();
 
                 return new UpsertRequest { UpsertSuccessfull = true, Message = "Invoice created successfully." };

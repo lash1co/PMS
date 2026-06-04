@@ -16,6 +16,16 @@
         public int Quantity { get; set; } = 0;
 
         /// <summary>
+        /// Gets or sets the unit price for the item or service included in the invoice.
+        /// </summary>
+        public decimal UnitPrice { get; set; }
+
+        /// <summary>
+        /// Gets or sets the total price for this invoice detail.
+        /// </summary>
+        public decimal Price { get; set; }
+
+        /// <summary>
         /// Gets or sets the description for the detail as part of the invoice. This description provides additional context or information about the item or service being billed.
         /// </summary>
         public string Description { get; set; }

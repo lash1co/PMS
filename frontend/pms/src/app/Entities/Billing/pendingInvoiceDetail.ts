@@ -4,5 +4,6 @@ interface PendingInvoiceDetailInterface {
   quantity: number;
   description: string;
   unitPrice: number;
+  price?: number;
   total: number;
 }

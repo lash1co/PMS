@@ -23,8 +23,10 @@ export interface EncounterSummaryDto {
   proceduresCount: number;
   allergiesCount: number;
   prescriptionsCount: number;
+  laboratoriesCount: number;
   observations: any[]; 
   allergies: any[];
   conditions: any[];
   procedures: any[];
+  laboratories: any[];
 }

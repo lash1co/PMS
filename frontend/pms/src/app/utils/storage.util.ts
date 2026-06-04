@@ -9,3 +9,14 @@ export function getPmsToken(): string | null {
     return null;
   }
 }
+
+export function getPmsUserRole(): string | null {
+  if (typeof localStorage === 'undefined') {
+    return null;
+  }
+  try {
+    return localStorage.getItem('pms_user');
+  } catch {
+    return null;
+  }
+}

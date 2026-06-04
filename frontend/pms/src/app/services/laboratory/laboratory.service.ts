@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { getPmsToken } from '../../utils/storage.util';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class LaboratoryService {
-  private apiUrl = 'http://localhost:5231/api/Laboratory';
+  private apiUrl = `${environment.apiUrl}/api/Laboratory`;
 
   constructor(private http: HttpClient) { }
 

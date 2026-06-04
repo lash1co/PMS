@@ -29,7 +29,7 @@ export class BillingReviewComponent implements OnInit {
   }
 
   onIUnitPriceChange(detail: PendingInvoiceDetailInterface, newUnitPrice: number): void {
-    detail.unitPrice = newUnitPrice;
+    detail.unitPrice = Number(newUnitPrice) || 0;
     detail.total = detail.quantity * detail.unitPrice;
   }
 
