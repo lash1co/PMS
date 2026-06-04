@@ -118,4 +118,89 @@ namespace WebServices.SharedBusiness
     /// Request to invalidate an encounter (e.g., entered in error).
     /// </summary>
     public record InvalidateEncounterRequest(string Reason);
+
+    /// <summary>
+    /// Data Transfer Object used to filter the encounter history.
+    /// </summary>
+    /// <param name="StartDate">The start date of the filter range.</param>
+    /// <param name="EndDate">The end date of the filter range.</param>
+    /// <param name="PatientIds">A collection of selected patient identifiers for soft filtering.</param>
+    /// <param name="DoctorIds">A collection of selected doctor identifiers for soft filtering.</param>
+    /// <param name="EncounterType">Filter by type: 'With Appointment' or 'Emergency'. Null means all.</param>
+    public record EncounterHistoryFilterDto(
+        DateTime StartDate,
+        DateTime EndDate,
+        List<int>? PatientIds,
+        List<int>? DoctorIds,
+        string? EncounterType
+    );
+
+    /// <summary>
+    /// Data Transfer Object representing a single read-only record in the encounter history.
+    /// </summary>
+    /// <param name="EncounterId">The unique identifier of the encounter.</param>
+    /// <param name="PatientName">The concatenated full name of the patient.</param>
+    /// <param name="EncounterDate">The date and time the encounter was completed or started.</param>
+    /// <param name="EncounterType">The classification of the encounter ("With Appointment" or "Emergency").</param>
+    /// <param name="Reason">The medical reason or chief complaint for the encounter.</param>
+    /// <param name="Score">The calculated relevance score based on filter matches.</param>
+    public record EncounterHistoryResponseDto(
+        int EncounterId,
+        string PatientName,
+        DateTime EncounterDate,
+        string EncounterType,
+        string Reason,
+        int Score
+    );
+
+    /// <summary>
+    /// Data Transfer Object representing the nested appointment details for an encounter.
+    /// </summary>
+    public record AppointmentDetailDto(
+        int AppointmentId,
+        DateTime StartTime,
+        DateTime EndTime,
+        string Reason,
+        string Status
+    );
+
+    /// <summary>
+    /// Data Transfer Object representing the comprehensive read-only details of a historical encounter.
+    /// </summary>
+    public record EncounterHistoryDetailDto(
+        int EncounterId,
+        string PatientName,
+        string DoctorName,
+        DateTime StartTime,
+        DateTime? EndTime,
+        string Status,
+        string? StatusReason,
+        string? UpdatedBy,
+        AppointmentDetailDto? Appointment,
+        List<ClinicalNoteDto> Notes,
+        List<ClinicalObservationDto> Vitals,
+        List<ConditionDto> Diagnoses
+    );
+
+    /// <summary>
+    /// Data Transfer Object representing a single clinical note entry.
+    /// </summary>
+    /// <param name="NoteText"></param>
+    /// <param name="Date"></param>
+    public record ClinicalNoteDto(string NoteText, DateTime Date);
+    /// <summary>
+    /// Data Transfer Object representing a single clinical observation entry.
+    /// </summary>
+    /// <param name="Type"></param>
+    /// <param name="Value"></param>
+    /// <param name="Unit"></param>
+    /// <param name="Date"></param>
+    public record ClinicalObservationDto(string Type, decimal Value, string Unit, DateTime Date);
+    /// <summary>
+    /// Data Transfer Object representing a single medical condition entry.
+    /// </summary>
+    /// <param name="Diagnosis"></param>
+    /// <param name="Status"></param>
+    /// <param name="Date"></param>
+    public record ConditionDto(string Diagnosis, string Status, DateTime Date);
 }
