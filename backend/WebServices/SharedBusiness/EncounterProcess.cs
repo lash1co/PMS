@@ -382,5 +382,130 @@ namespace WebServices.SharedBusiness
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
+        /// <summary>
+        /// Retrieves a read-only historical list of completed encounters based on date and soft-match filters.
+        /// </summary>
+        public async Task<List<EncounterHistoryResponseDto>> GetEncounterHistoryAsync(EncounterHistoryFilterDto filter)
+        {
+            // FIX: Para evitar el error "Constant expression in ORDER BY", 
+            // inyectamos un ID ficticio si las listas vienen vacías o nulas.
+            // Esto obliga a EF Core a generar una expresión SQL dinámica válida.
+            var pIds = filter.PatientIds != null && filter.PatientIds.Any() ? filter.PatientIds : new List<int> { -999999 };
+            var dIds = filter.DoctorIds != null && filter.DoctorIds.Any() ? filter.DoctorIds : new List<int> { -999999 };
+
+            // 1. Base Query with Strict Date and Status Filters
+            var query = _dbContext.Encounters.AsNoTracking()
+                .Where(e => e.Status == EncounterStatus.Completed || e.Status == EncounterStatus.Cancelled)
+                .Where(e => e.StartTime >= filter.StartDate && e.StartTime <= filter.EndDate);
+
+            // 2. Dynamic Encounter Type Filter
+            if (!string.IsNullOrEmpty(filter.EncounterType))
+            {
+                if (filter.EncounterType == "With Appointment")
+                    query = query.Where(e => e.AppointmentId != null);
+                else if (filter.EncounterType == "Emergency")
+                    query = query.Where(e => e.AppointmentId == null);
+            }
+
+            // 3. Projection to an Anonymous Type (100% translatable to SQL Server)
+            var dbQuery = query.Select(e => new
+            {
+                e.Id,
+                PatientName = e.Patient.LastName + " " + e.Patient.FirstName,
+                EncounterDate = e.StartTime,
+                HasAppointment = e.AppointmentId != null,
+                Reason = e.AppointmentId != null ? e.Appointment.Reason : (e.StatusReason ?? "Walk-In"),
+                Score = (pIds.Contains(e.PatientId) ? 2 : 0) + (dIds.Contains(e.DoctorId) ? 2 : 0)
+            });
+
+            // 4. Sort and execute query against Database
+            var results = await dbQuery
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.EncounterDate)
+                .ToListAsync();
+
+            // 5. In-Memory mapping to the C# Record DTO
+            return results.Select(x => new EncounterHistoryResponseDto(
+                x.Id,
+                x.PatientName,
+                x.EncounterDate,
+                x.HasAppointment ? "With Appointment" : "Emergency",
+                x.Reason,
+                x.Score
+            )).ToList();
+        }
+
+        /// <summary>
+        /// Retrieves comprehensive read-only details for a specific historical encounter.
+        /// </summary>
+        /// <param name="encounterId">The unique identifier of the encounter.</param>
+        /// <returns>A detailed DTO including nested appointment information if applicable.</returns>
+        public async Task<EncounterHistoryDetailDto> GetEncounterHistoryDetailAsync(int encounterId)
+        {
+            var rawData = await _dbContext.Encounters.AsNoTracking()
+                .Where(e => e.Id == encounterId)
+                .Select(e => new
+                {
+                    e.Id,
+                    PatientName = e.Patient.LastName + " " + e.Patient.FirstName,
+                    DoctorName = e.Doctor.Name,
+                    e.StartTime,
+                    e.EndTime,
+                    Status = e.Status.ToString(),
+                    e.StatusReason,
+                    e.UpdatedBy,
+                    Appointment = e.Appointment,
+                    ClinicalNote = e.ClinicalNote,
+                    Observations = e.Observations,
+                    Conditions = e.Conditions
+                })
+                .FirstOrDefaultAsync();
+
+            if (rawData == null)
+                throw new KeyNotFoundException("Historical encounter not found.");
+
+            var detailDto = new EncounterHistoryDetailDto(
+                rawData.Id,
+                rawData.PatientName,
+                rawData.DoctorName,
+                rawData.StartTime,
+                rawData.EndTime,
+                rawData.Status,
+                rawData.StatusReason,
+                rawData.UpdatedBy,
+
+                rawData.Appointment != null ? new AppointmentDetailDto(
+                    rawData.Appointment.Id,
+                    rawData.Appointment.StartTime,
+                    rawData.Appointment.EndTime,
+                    rawData.Appointment.Reason,
+                    rawData.Appointment.Status.ToString()
+                ) : null,
+
+                rawData.ClinicalNote != null ? new List<ClinicalNoteDto>
+                {
+                    new ClinicalNoteDto(
+                        $"S: {rawData.ClinicalNote.Subjective}\nO: {rawData.ClinicalNote.Objective}\nA: {rawData.ClinicalNote.Assessment}\nP: {rawData.ClinicalNote.Plan}",
+                        rawData.ClinicalNote.CreatedAt
+                    )
+                } : new List<ClinicalNoteDto>(),
+
+                rawData.Observations?.Select(o => new ClinicalObservationDto(
+                    o.DisplayName ?? "Measurement",
+                    o.ValueQuantity ?? 0m,
+                    o.Unit ?? "",
+                    o.EffectiveDate
+                )).ToList() ?? new List<ClinicalObservationDto>(),
+
+                rawData.Conditions?.Select(c => new ConditionDto(
+                    c.DisplayName ?? "Unknown",
+                    c.ClinicalStatus.ToString(),
+                    c.RecordedDate
+                )).ToList() ?? new List<ConditionDto>()
+            );
+
+            return detailDto;
+        }
     }
 }
