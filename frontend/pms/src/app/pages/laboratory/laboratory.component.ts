@@ -14,7 +14,7 @@ export class LaboratoryComponent implements OnInit {
   laboratoryData = signal<LaboratoryInterface[]>([]);
 
   currentLaboratory: LaboratoryInterface = {
-    Id: 0,
+    id: 0,
     description: '',
     price: 0,
     timeToCompleteInHours: 0,
@@ -34,7 +34,10 @@ export class LaboratoryComponent implements OnInit {
 
   private loadLaboratories(): void {
     this.laboratoryService.getLaboratories().subscribe({
-      next: (laboratories) => this.laboratoryData.set(laboratories),
+      next: (laboratories) => {
+        this.laboratoryData.set(laboratories);
+        console.log('Loaded laboratories:', laboratories);
+      },
       error: (error) => console.error('Error loading laboratories:', error)
     });
   }
@@ -42,7 +45,7 @@ export class LaboratoryComponent implements OnInit {
   openCreateModal(): void {
     this.isEditing.set(false);
     this.currentLaboratory = {
-      Id: 0,
+      id: 0,
       description: '',
       price: 0,
       timeToCompleteInHours: 0,
@@ -63,10 +66,8 @@ export class LaboratoryComponent implements OnInit {
     if (this.isEditing()) {
       this.laboratoryService.updateLaboratory(laboratory).subscribe({
         next: () => {
-          this.laboratoryData.update((labs) =>
-            labs.map((lab) => (lab.Id === laboratory.Id ? laboratory : lab))
-          );
           alert(`Laboratory updated successfully!`);
+          this.loadLaboratories();
           this.showModal.set(false);
         },
         error: (error) => console.error('Error updating laboratory:', error),
@@ -75,8 +76,8 @@ export class LaboratoryComponent implements OnInit {
     } else {
       this.laboratoryService.createLaboratory(laboratory).subscribe({
         next: (createdLab) => {
-          this.laboratoryData.update((labs) => [...labs, createdLab]);
           alert(`Laboratory created successfully!`);
+          this.loadLaboratories();
           this.showModal.set(false);
         },
         error: (error) => console.error('Error creating laboratory:', error),
@@ -93,7 +94,7 @@ export class LaboratoryComponent implements OnInit {
     if (confirm('Are you sure you want to delete this laboratory?')) {
       this.laboratoryService.deleteLaboratory(id).subscribe({
         next: () => {
-          this.laboratoryData.update((labs) => labs.filter((lab) => lab.Id !== id));
+          this.laboratoryData.update((labs) => labs.filter((lab) => lab.id !== id));
         },
         error: (error) => console.error('Error deleting laboratory:', error)
       });

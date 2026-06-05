@@ -8,7 +8,6 @@ import { environment } from '../../environments/environment';
 import { getPmsToken } from '../utils/storage.util';
 
 import { EncounterService } from '../services/encounter/encounter.service';
-import { EncounterModal } from '../pages/encounter-modal/encounter-modal';
 
 @Component({
   selector: 'app-daily-schedule-modal',

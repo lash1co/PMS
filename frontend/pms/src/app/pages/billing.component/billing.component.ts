@@ -57,7 +57,14 @@ export class BillingComponent implements OnInit {
 
   getPendingInvoices() {
     this.billingService.getPendingInvoices().subscribe((invoices) => {
-      this.pendingBillingData.set(invoices);
+      this.pendingBillingData.set(invoices.map((invoice) => ({
+        ...invoice,
+        invoiceDetails: invoice.invoiceDetails.map((detail) => ({
+          ...detail,
+          unitPrice: Number(detail.unitPrice ?? 0),
+          total: Number((detail as any).price ?? detail.total ?? (detail.quantity * (detail.unitPrice ?? 0)))
+        }))
+      })));
       console.log(invoices);
     });
   }
@@ -88,19 +95,17 @@ export class BillingComponent implements OnInit {
       next: () => {
         this.getPendingInvoices();
         this.getActiveInvoices();
+        this.isSaving.set(false);
         this.closeModal();
       },
       error: (error) => {
         console.error('Error saving billing:', error);
-        alert('Failed to save billing. Please try again.');
+        const message = error?.error?.error || error?.error?.message || error?.error || 'Failed to save billing. Please try again.';
+        alert(message);
         this.isSaving.set(false);
       }
     });
     console.log('Saving billing:', updatedBilling);
-    setTimeout(() => {
-      this.isSaving.set(false);
-      this.closeModal();
-    }, 1000);
   }
 
   closeModal(): void {

@@ -28,6 +28,11 @@ namespace WebServices.Controllers.Encounter
             UserConstants.RoleConstants.DoctorRole
         };
 
+        private readonly List<string> _doctorOnlyRoles = new List<string>
+        {
+            UserConstants.RoleConstants.DoctorRole
+        };
+
         /// <summary>
         /// Initializes a new instance of the <see cref="EncounterController"/> class.
         /// </summary>
@@ -39,6 +44,35 @@ namespace WebServices.Controllers.Encounter
             _encounterProcess = encounterProcess;
             _config = config;
             _context = context;
+        }
+
+        private async Task<(bool IsAuthorized, IActionResult? Error, int DoctorId, string UserName)> ValidateDoctorAuthorizationAsync()
+        {
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _doctorOnlyRoles);
+
+            if (!authResult.Value.tokenIsValid)
+            {
+                return (false, StatusCode(authResult.Value.errorStatus, authResult.Value.errorMessage), 0, string.Empty);
+            }
+
+            if (!authResult.Value.doctorId.HasValue)
+            {
+                return (false, StatusCode(StatusCodes.Status403Forbidden, "Doctor profile not found for the authenticated user."), 0, authResult.Value.userName);
+            }
+
+            return (true, null, authResult.Value.doctorId.Value, authResult.Value.userName);
+        }
+
+        private IActionResult MutationError(Exception ex)
+        {
+            return ex switch
+            {
+                UnauthorizedAccessException => StatusCode(StatusCodes.Status403Forbidden, ex.Message),
+                InvalidOperationException => BadRequest(ex.Message),
+                KeyNotFoundException => NotFound(ex.Message),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, ex.Message)
+            };
         }
 
         /// <summary>
@@ -91,14 +125,18 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("start/{appointmentId}")]
         public async Task<IActionResult> StartEncounter(int appointmentId)
         {
-            
-            var validationProcess = new TokenValidationProcess(_config, _context);
-            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
 
-            if (!authResult.Value.tokenIsValid) return Unauthorized();
-
-            var result = await _encounterProcess.StartEncounterAsync(appointmentId, authResult.Value.userName);
-            return Ok(result);
+            try
+            {
+                var result = await _encounterProcess.StartEncounterAsync(appointmentId, auth.UserName, auth.DoctorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
         /// <summary>
         /// Creates an encounter for a walk-in or emergency patient without a scheduled appointment.
@@ -106,13 +144,18 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("walk-in")]
         public async Task<IActionResult> CreateWalkIn([FromBody] CreateWalkInRequest request)
         {
-            var validationProcess = new TokenValidationProcess(_config, _context);
-            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
 
-            if (!authResult.Value.tokenIsValid) return Unauthorized();
-
-            var result = await _encounterProcess.CreateWalkInEncounterAsync(request, authResult.Value.userName);
-            return Ok(result);
+            try
+            {
+                var result = await _encounterProcess.CreateWalkInEncounterAsync(request, auth.UserName, auth.DoctorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         /// <summary>
@@ -121,13 +164,18 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("{id}/invalidate")]
         public async Task<IActionResult> InvalidateEncounter(int id, [FromBody] InvalidateEncounterRequest request)
         {
-            var validationProcess = new TokenValidationProcess(_config, _context);
-            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
 
-            if (!authResult.Value.tokenIsValid) return Unauthorized();
-
-            var result = await _encounterProcess.InvalidateEncounterAsync(id, request, authResult.Value.userName);
-            return result ? Ok(new { message = "Encounter invalidated." }) : NotFound();
+            try
+            {
+                var result = await _encounterProcess.InvalidateEncounterAsync(id, request, auth.UserName, auth.DoctorId);
+                return result ? Ok(new { message = "Encounter invalidated." }) : NotFound();
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         /// <summary>
@@ -151,8 +199,18 @@ namespace WebServices.Controllers.Encounter
         [HttpPut("{id}/note")]
         public async Task<IActionResult> UpdateNote(int id, [FromBody] UpdateClinicalNoteRequest request)
         {
-            var result = await _encounterProcess.UpdateClinicalNoteAsync(id, request);
-            return Ok(result);
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.UpdateClinicalNoteAsync(id, request, auth.DoctorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         /// <summary>
@@ -163,13 +221,18 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("{id}/complete")]
         public async Task<IActionResult> CompleteEncounter(int id)
         {
-            var validationProcess = new TokenValidationProcess(_config, _context);
-            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
 
-            if (!authResult.Value.tokenIsValid) return Unauthorized();
-
-            var result = await _encounterProcess.CompleteEncounterAsync(id, authResult.Value.userName);
-            return Ok(result);
+            try
+            {
+                var result = await _encounterProcess.CompleteEncounterAsync(id, auth.UserName, auth.DoctorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         // ==========================================
@@ -185,9 +248,19 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("{id}/observations")]
         public async Task<IActionResult> AddObservation(int id, [FromBody] CreateObservationDto request)
         {
-            var result = await _encounterProcess.AddObservationAsync(id, request);
-            if (!result) return NotFound("Encounter not found.");
-            return Ok(new { message = "Observation added successfully." });
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.AddObservationAsync(id, request, auth.DoctorId);
+                if (!result) return NotFound("Encounter not found.");
+                return Ok(new { message = "Observation added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         /// <summary>
@@ -199,9 +272,19 @@ namespace WebServices.Controllers.Encounter
         [HttpDelete("{id}/observations/{observationId}")]
         public async Task<IActionResult> RemoveObservation(int id, int observationId)
         {
-            var result = await _encounterProcess.RemoveObservationAsync(id, observationId);
-            if (!result) return NotFound("Observation or Encounter not found.");
-            return Ok(new { message = "Observation removed successfully." });
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.RemoveObservationAsync(id, observationId, auth.DoctorId);
+                if (!result) return NotFound("Observation or Encounter not found.");
+                return Ok(new { message = "Observation removed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         // ==========================================
@@ -217,9 +300,19 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("{id}/allergies")]
         public async Task<IActionResult> AddAllergy(int id, [FromBody] CreateAllergyDto request)
         {
-            var result = await _encounterProcess.AddAllergyAsync(id, request);
-            if (!result) return NotFound("Encounter not found.");
-            return Ok(new { message = "Allergy added successfully." });
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.AddAllergyAsync(id, request, auth.DoctorId);
+                if (!result) return NotFound("Encounter not found.");
+                return Ok(new { message = "Allergy added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         /// <summary>
@@ -231,9 +324,19 @@ namespace WebServices.Controllers.Encounter
         [HttpDelete("{id}/allergies/{allergyId}")]
         public async Task<IActionResult> RemoveAllergy(int id, int allergyId)
         {
-            var result = await _encounterProcess.RemoveAllergyAsync(id, allergyId);
-            if (!result) return NotFound("Allergy or Encounter not found.");
-            return Ok(new { message = "Allergy removed successfully." });
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.RemoveAllergyAsync(id, allergyId, auth.DoctorId);
+                if (!result) return NotFound("Allergy or Encounter not found.");
+                return Ok(new { message = "Allergy removed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         // ==========================================
@@ -249,9 +352,19 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("{id}/conditions")]
         public async Task<IActionResult> AddCondition(int id, [FromBody] CreateConditionDto request)
         {
-            var result = await _encounterProcess.AddConditionAsync(id, request);
-            if (!result) return NotFound("Encounter not found.");
-            return Ok(new { message = "Condition added successfully." });
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.AddConditionAsync(id, request, auth.DoctorId);
+                if (!result) return NotFound("Encounter not found.");
+                return Ok(new { message = "Condition added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         /// <summary>
@@ -263,9 +376,19 @@ namespace WebServices.Controllers.Encounter
         [HttpDelete("{id}/conditions/{conditionId}")]
         public async Task<IActionResult> RemoveCondition(int id, int conditionId)
         {
-            var result = await _encounterProcess.RemoveConditionAsync(id, conditionId);
-            if (!result) return NotFound("Condition or Encounter not found.");
-            return Ok(new { message = "Condition removed successfully." });
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.RemoveConditionAsync(id, conditionId, auth.DoctorId);
+                if (!result) return NotFound("Condition or Encounter not found.");
+                return Ok(new { message = "Condition removed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         // ==========================================
@@ -281,9 +404,19 @@ namespace WebServices.Controllers.Encounter
         [HttpPost("{id}/procedures")]
         public async Task<IActionResult> AddProcedure(int id, [FromBody] CreateProcedureDto request)
         {
-            var result = await _encounterProcess.AddProcedureAsync(id, request);
-            if (!result) return NotFound("Encounter not found.");
-            return Ok(new { message = "Procedure added successfully." });
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.AddProcedureAsync(id, request, auth.DoctorId);
+                if (!result) return NotFound("Encounter not found.");
+                return Ok(new { message = "Procedure added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         /// <summary>
@@ -295,9 +428,37 @@ namespace WebServices.Controllers.Encounter
         [HttpDelete("{id}/procedures/{procedureId}")]
         public async Task<IActionResult> RemoveProcedure(int id, int procedureId)
         {
-            var result = await _encounterProcess.RemoveProcedureAsync(id, procedureId);
-            if (!result) return NotFound("Procedure or Encounter not found.");
-            return Ok(new { message = "Procedure removed successfully." });
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.RemoveProcedureAsync(id, procedureId, auth.DoctorId);
+                if (!result) return NotFound("Procedure or Encounter not found.");
+                return Ok(new { message = "Procedure removed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
+        }
+
+        [HttpPost("{id}/laboratories")]
+        public async Task<IActionResult> AddLaboratoryRequest(int id, [FromBody] CreateLaboratoryRequestDto request)
+        {
+            var auth = await ValidateDoctorAuthorizationAsync();
+            if (!auth.IsAuthorized) return auth.Error!;
+
+            try
+            {
+                var result = await _encounterProcess.AddLaboratoryRequestAsync(id, request, auth.DoctorId);
+                if (!result) return NotFound("Encounter not found.");
+                return Ok(new { message = "Laboratory request created successfully." });
+            }
+            catch (Exception ex)
+            {
+                return MutationError(ex);
+            }
         }
 
         /// ==========================================

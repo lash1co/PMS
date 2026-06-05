@@ -29,7 +29,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr *ngFor="let laboratory of laboratoryData()" class="hover:bg-gray-50 transition">
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ laboratory.Id }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ laboratory.id }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">{{ laboratory.description }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${{ laboratory.price | number:'1.2-2' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ laboratory.timeToCompleteInHours }}</td>
@@ -60,7 +60,7 @@
 
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <button (click)="openEditModal(laboratory)" class="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
-              <button (click)="deleteLaboratory(laboratory.Id)" class="text-red-600 hover:text-red-900">Delete</button>
+              <button (click)="deleteLaboratory(laboratory.id)" class="text-red-600 hover:text-red-900">Delete</button>
             </td>
           </tr>
           @if (laboratoryData().length === 0) {

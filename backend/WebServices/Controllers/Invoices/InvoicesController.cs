@@ -68,14 +68,20 @@ namespace WebServices.Controllers.Invoices
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PendingInvoices>>> GetPendingInvoices()
         {
-            var paidEncounters = await _dbContext.DBInvoices
-                .Where(i => i.Status == InvoiceStatus.Paid)
+            var invoicedEncounters = await _dbContext.DBInvoices
+                .Where(i => i.Encounter != null)
                 .Select(i => i.Encounter!.Id)
                 .ToArrayAsync();
 
+            var patientsWithActiveInvoices = await _dbContext.DBInvoices
+                .Where(i => i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Overdue)
+                .Select(i => i.PatientId)
+                .ToArrayAsync();
+
             var encounters = await _dbContext.Encounters
-                .Where(e => !paidEncounters.Contains(e.Id) &&
-                    e.Status != EncounterStatus.Completed)
+                .Where(e => !invoicedEncounters.Contains(e.Id) &&
+                    !patientsWithActiveInvoices.Contains(e.PatientId) &&
+                    e.Status == EncounterStatus.Completed)
                 .Select(e => new
                 {
                     EncounterId = e.Id,
@@ -99,6 +105,8 @@ namespace WebServices.Controllers.Invoices
                         {
                             Code = "MEDATN",
                             Quantity = 1,
+                            UnitPrice = 0,
+                            Price = 0,
                             Description = "Medical Atention"
                         }
                     }
@@ -109,24 +117,38 @@ namespace WebServices.Controllers.Invoices
                     .Select(m => new PendingInvoiceDetail{
                         Code = "MEDPRSC",
                         Quantity = m.Refills,
+                        UnitPrice = 0,
+                        Price = 0,
                         Description = m.Medication!.Name
                     })
                     .ToListAsync();
 
                 invoice.InvoiceDetails.AddRange(invoiceMedicationDetails);
 
-                //if (invoiceDetails != null && invoiceDetails.Any())
-                //{
-                //    foreach (var medication in invoiceDetails)
-                //    {
-                //        invoice.InvoiceDetails.Add(new PendingInvoiceDetail
-                //        {
-                //            Code = "MEDPRE",
-                //            Quantity = medication.Refills,
-                //            Description = medication.Medication!.Name,
-                //        });
-                //    }
-                //}
+                var encounterLaboratories = await _dbContext.EncounterLaboratories
+                    .Include(l => l.LaboratoriesDetails)
+                        .ThenInclude(d => d.Laboratory)
+                    .Where(l => l.Encounter != null && l.Encounter.Id == encounter.EncounterId)
+                    .ToListAsync();
+
+                var invoiceLaboratoryDetails = encounterLaboratories
+                    .SelectMany(l => l.LaboratoriesDetails ?? new List<EncounterLaboratoriesDetail>())
+                    .Where(d => d.Laboratory != null)
+                    .Select(d =>
+                    {
+                        var price = d.Laboratory!.Price.HasValue ? Convert.ToDecimal(d.Laboratory.Price.Value) : 0;
+                        return new PendingInvoiceDetail
+                        {
+                            Code = "LAB",
+                            Quantity = 1,
+                            UnitPrice = price,
+                            Price = price,
+                            Description = d.Laboratory.Description
+                        };
+                    })
+                    .ToList();
+
+                invoice.InvoiceDetails.AddRange(invoiceLaboratoryDetails);
 
                 pendingInvoices.Add(invoice);
             }
@@ -140,7 +162,6 @@ namespace WebServices.Controllers.Invoices
         /// <param name="request">The data required to create the invoice, including PatientId.</param>
         /// <returns>A success message and the new invoice ID.</returns>
         [HttpPost("createInvoice")]
-        [Authorize]
         public async Task<IActionResult> CreateInvoice([FromBody] InvoiceRequestRecord request)
         {
             var validationProcess = new TokenValidationProcess(_config, _dbContext);
@@ -206,6 +227,11 @@ namespace WebServices.Controllers.Invoices
             if (encounter is null)
             {
                 return NotFound("The specified Encounter does not exist.");
+            }
+
+            if (encounter.Status != EncounterStatus.Completed)
+            {
+                return BadRequest(new { error = "Only completed encounters can be billed." });
             }
 
             try

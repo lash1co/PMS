@@ -44,29 +44,30 @@ namespace WebServices.SharedBusiness
         /// <item><description><c>userName</c>: The username extracted from the token claims.</description></item>
         /// </list>
         /// </returns>
-        public async Task<(bool tokenIsValid, int errorStatus, string? errorMessage, int? doctorId, string userName)?> ValidateAuthorizationAsync(string requestHeader, List<string> authorizedRoles)
+        public async Task<(bool tokenIsValid, int errorStatus, string? errorMessage, int? doctorId, string userName, string role)?> ValidateAuthorizationAsync(string requestHeader, List<string> authorizedRoles)
         {
             var authorizationHeader = requestHeader;
 
             // If there is no token, return string.Empty for the userName
             if (string.IsNullOrEmpty(authorizationHeader))
-                return (false, StatusCodes.Status401Unauthorized, "Invalid authorization token.", null, string.Empty);
+                return (false, StatusCodes.Status401Unauthorized, "Invalid authorization token.", null, string.Empty, string.Empty);
 
             var validation = new TokenRoleValidator(_dbContext);
             var validationResult = await validation.ValidateTokenAndGetRole(authorizationHeader, _config["Jwt:Key"], _config["Jwt:Issuer"]);
 
             if (!validationResult.tokenIsValid)
             {
-                return (false, StatusCodes.Status401Unauthorized, validationResult.message, null, string.Empty);
+                return (false, StatusCodes.Status401Unauthorized, validationResult.message, null, string.Empty, string.Empty);
             }
 
             if (!authorizedRoles.Contains(validationResult.role))
             {
-                return (false, StatusCodes.Status403Forbidden, validationResult.role + " does not have permission to execute this process.", null, string.Empty);
+                return (false, StatusCodes.Status403Forbidden, validationResult.role + " does not have permission to execute this process.", null, string.Empty, validationResult.role);
             }
 
             // NEW LOGIC: Extract the username directly from the JWT
             string userName = "System"; // Default value in case of failure
+            string tokenUserName = string.Empty;
             try
             {
                 var token = authorizationHeader.Replace("Bearer ", "").Trim();
@@ -78,6 +79,7 @@ namespace WebServices.SharedBusiness
 
                     // The username in JWTs is usually stored in "unique_name", "name", or the standard .NET claim
                     userName = jwtToken.Claims.FirstOrDefault(c => c.Type == "Name")?.Value ?? "UnknownUser";
+                    tokenUserName = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value ?? string.Empty;
                 }
             }
             catch
@@ -85,8 +87,17 @@ namespace WebServices.SharedBusiness
                 // If deserialization fails for any reason, the default value is maintained
             }
 
-            // TODO: If the role is "Doctor", you might want to retrieve the doctorId from the database based on the token or user information. For now, we return 1 for doctorId.
-            return (true, StatusCodes.Status200OK, null, 1, userName);
+            int? doctorId = null;
+            if (!string.IsNullOrWhiteSpace(tokenUserName))
+            {
+                var dbUser = await _dbContext.Users
+                    .Include(u => u.Doctor)
+                    .FirstOrDefaultAsync(u => u.UserName == tokenUserName);
+
+                doctorId = dbUser?.Doctor?.Id;
+            }
+
+            return (true, StatusCodes.Status200OK, null, doctorId, userName, validationResult.role);
         }
     }
 }

@@ -31,7 +31,7 @@ export class EncounterService {
 
   invalidateEncounter(id: number, reason: string): Observable<any> {
   return this.http.post(`${this.apiUrl}/${id}/invalidate`, { reason }, this.getAuthHeaders());
-}
+  }
 
   getEncounterSummary(encounterId: number): Observable<EncounterSummaryDto> {
     return this.http.get<EncounterSummaryDto>(`${this.apiUrl}/${encounterId}/summary`, this.getAuthHeaders());
@@ -105,5 +105,9 @@ export class EncounterService {
    */
   getEncounterHistoryDetail(id: number): Observable<EncounterHistoryDetail> {
     return this.http.get<EncounterHistoryDetail>(`${this.apiUrl}/${id}/history-detail`, this.getAuthHeaders());
+  }
+  
+  addLaboratoryRequest(id: number, laboratoryId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/laboratories`, { laboratoryId }, this.getAuthHeaders());
   }
 }
