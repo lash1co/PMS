@@ -1,5 +1,5 @@
 interface LaboratoryInterface {
-  Id: number;
+  id: number;
   description: string;
   price: number;
   timeToCompleteInHours: number;

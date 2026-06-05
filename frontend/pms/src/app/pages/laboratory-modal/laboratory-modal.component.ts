@@ -13,7 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class LaboratoryModalComponent implements OnChanges {
   @Input() laboratory: LaboratoryInterface = {
-    Id: 0,
+    id: 0,
     description: '',
     price: 0,
     timeToCompleteInHours: 0,
