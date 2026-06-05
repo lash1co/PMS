@@ -460,5 +460,43 @@ namespace WebServices.Controllers.Encounter
                 return MutationError(ex);
             }
         }
+
+        /// ==========================================
+        /// HISTORY
+        /// ==========================================
+
+        /// <summary>
+        /// Retrieves the historical list of completed encounters based on specific filters.
+        /// </summary>
+        /// <param name="filter">The filtering parameters from the query string.</param>
+        /// <returns>A prioritized list of encounter history records.</returns>
+        [HttpGet("history")]
+        public async Task<IActionResult> GetHistory([FromQuery] EncounterHistoryFilterDto filter)
+        {
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+
+            if (!authResult.Value.tokenIsValid) return Unauthorized();
+
+            var result = await _encounterProcess.GetEncounterHistoryAsync(filter);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves the comprehensive details of a specific historical encounter.
+        /// </summary>
+        /// <param name="id">The encounter identifier.</param>
+        /// <returns>Detailed encounter and appointment data.</returns>
+        [HttpGet("{id}/history-detail")]
+        public async Task<IActionResult> GetHistoryDetail(int id)
+        {
+            var validationProcess = new TokenValidationProcess(_config, _context);
+            var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles);
+
+            if (!authResult.Value.tokenIsValid) return Unauthorized();
+
+            var result = await _encounterProcess.GetEncounterHistoryDetailAsync(id);
+            return Ok(result);
+        }
     }
 }

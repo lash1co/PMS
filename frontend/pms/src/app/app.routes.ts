@@ -13,6 +13,7 @@ import { PrescriptionsList} from './pages/prescriptions-list/prescriptions-list'
 import { UsersList } from './pages/users-list/users-list';
 import { ScheduleComponent } from './pages/schedule/schedule.component';
 import { ReportsComponent } from './pages/reports/reports.component';
+import { EncounterHistoryComponent } from './pages/encounter-history/encounter-history.component';
 
 export const routes: Routes = [
 
@@ -37,7 +38,8 @@ export const routes: Routes = [
       { path: 'encounters', component: EncounterComponent },
       { path: 'prescriptions', component: PrescriptionsList },
       { path: 'billing', component: BillingComponent },
-      { path: 'reports', component: ReportsComponent }
+      { path: 'reports', component: ReportsComponent },
+      { path: 'encounter-history', component: EncounterHistoryComponent }
     ]
   },
 
