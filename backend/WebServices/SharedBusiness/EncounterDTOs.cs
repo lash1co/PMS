@@ -39,10 +39,12 @@ namespace WebServices.SharedBusiness
         int ProceduresCount,
         int AllergiesCount,
         int PrescriptionsCount,
+        int LaboratoriesCount,
         IEnumerable<object> Observations,
         IEnumerable<object> Allergies,
         IEnumerable<object> Conditions,
-        IEnumerable<object> Procedures
+        IEnumerable<object> Procedures,
+        IEnumerable<object> Laboratories
     );
 
     /// <summary>
@@ -107,6 +109,10 @@ namespace WebServices.SharedBusiness
         string Code,
         string DisplayName,
         ProcedureStatus Status
+    );
+
+    public record CreateLaboratoryRequestDto(
+        int LaboratoryId
     );
 
     /// <summary>

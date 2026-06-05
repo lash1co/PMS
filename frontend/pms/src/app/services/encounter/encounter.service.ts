@@ -71,4 +71,8 @@ export class EncounterService {
   deleteProcedure(encounterId: number, procedureId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${encounterId}/procedures/${procedureId}`, this.getAuthHeaders());
   }
+
+  addLaboratoryRequest(id: number, laboratoryId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/laboratories`, { laboratoryId }, this.getAuthHeaders());
+  }
 }

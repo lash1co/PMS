@@ -21,6 +21,24 @@ namespace WebServices.SharedBusiness
             _dbContext = dbContext;
         }
 
+        private async Task<Encounter> GetEditableEncounterAsync(int encounterId, int doctorId)
+        {
+            var encounter = await _dbContext.Encounters.FindAsync(encounterId);
+            if (encounter == null) throw new KeyNotFoundException("Encounter not found.");
+
+            if (encounter.DoctorId != doctorId)
+            {
+                throw new UnauthorizedAccessException("Only the assigned doctor can modify this encounter.");
+            }
+
+            if (encounter.Status != EncounterStatus.InProgress)
+            {
+                throw new InvalidOperationException("Only in-progress encounters can be modified.");
+            }
+
+            return encounter;
+        }
+
         /// <summary>
         /// Starts a new clinical encounter based on an existing appointment.
         /// Updates the appointment status to completed and initializes an empty clinical note.
@@ -28,7 +46,7 @@ namespace WebServices.SharedBusiness
         /// <param name="appointmentId">The unique identifier of the appointment.</param>
         /// <returns>A summary of the newly created encounter.</returns>
         /// <exception cref="Exception">Thrown when the appointment is not found.</exception>
-        public async Task<EncounterSummaryDto> StartEncounterAsync(int appointmentId, string username)
+        public async Task<EncounterSummaryDto> StartEncounterAsync(int appointmentId, string username, int doctorId)
         {
             var appointment = await _dbContext.DBAppointments
                 .Include(a => a.Doctor)
@@ -36,6 +54,10 @@ namespace WebServices.SharedBusiness
                 .FirstOrDefaultAsync(a => a.Id == appointmentId);
 
             if (appointment == null) throw new Exception("Appointment not found.");
+            if (appointment.Doctor.Id != doctorId)
+            {
+                throw new UnauthorizedAccessException("Only the assigned doctor can start this encounter.");
+            }
 
             appointment.Status = AppointmentStatus.Completed;
 
@@ -62,12 +84,17 @@ namespace WebServices.SharedBusiness
         /// <summary>
         /// Creates an encounter directly without an appointment (Emergency/Walk-in).
         /// </summary>
-        public async Task<EncounterSummaryDto> CreateWalkInEncounterAsync(CreateWalkInRequest request, string username)
+        public async Task<EncounterSummaryDto> CreateWalkInEncounterAsync(CreateWalkInRequest request, string username, int doctorId)
         {
+            if (request.DoctorId != doctorId)
+            {
+                throw new UnauthorizedAccessException("Doctors can only create encounters assigned to themselves.");
+            }
+
             var encounter = new Encounter
             {
                 PatientId = request.PatientId,
-                DoctorId = request.DoctorId,
+                DoctorId = doctorId,
                 Status = EncounterStatus.InProgress,
                 StartTime = DateTime.UtcNow,
                 StatusReason = request.InitialReason,
@@ -101,6 +128,9 @@ namespace WebServices.SharedBusiness
                 .Include(e => e.Procedures)
                 .Include(e => e.Allergies)
                 .Include(e => e.Prescriptions)
+                .Include(e => e.Laboratories)
+                    .ThenInclude(l => l.LaboratoriesDetails)
+                        .ThenInclude(d => d.Laboratory)
                 .FirstOrDefaultAsync(e => e.Id == encounterId);
 
             if (encounter == null) throw new Exception("Encounter not found.");
@@ -130,6 +160,24 @@ namespace WebServices.SharedBusiness
                 .Select(p => (object)new { p.Id, p.Code, p.DisplayName, p.Status })
                 ?? new List<object>();
 
+            var laboratoriesList = encounter.Laboratories?
+                .SelectMany(l => l.LaboratoriesDetails?
+                    .Where(d => d.Laboratory != null)
+                    .Select(d => (object)new
+                    {
+                        RequestId = l.Id,
+                        DetailId = d.Id,
+                        LaboratoryId = d.Laboratory!.Id,
+                        d.Laboratory.Description,
+                        d.Laboratory.Price,
+                        d.Laboratory.TimeToCompleteInHours,
+                        d.Laboratory.NoFoodBeforeExecuted,
+                        d.Laboratory.LiquidIngestionBeforeExecuted,
+                        DateOrdered = l.DateOrdered,
+                        Status = l.LaboratoryStatus.ToString()
+                    }) ?? new List<object>())
+                ?? new List<object>();
+
             return new EncounterSummaryDto(
                 encounter.Id,
                 encounter.AppointmentId,
@@ -145,10 +193,12 @@ namespace WebServices.SharedBusiness
                 encounter.Procedures?.Count ?? 0,
                 encounter.Allergies?.Count ?? 0,
                 encounter.Prescriptions?.Count ?? 0,
+                laboratoriesList.Count(),
                 observationsList,
                 allergiesList,
                 conditionsList,
-                proceduresList
+                proceduresList,
+                laboratoriesList
             );
         }
 
@@ -159,8 +209,10 @@ namespace WebServices.SharedBusiness
         /// <param name="request">The data containing the updated clinical note sections.</param>
         /// <returns>True if the update was successful.</returns>
         /// <exception cref="Exception">Thrown when the clinical note is not found.</exception>
-        public async Task<bool> UpdateClinicalNoteAsync(int encounterId, UpdateClinicalNoteRequest request)
+        public async Task<bool> UpdateClinicalNoteAsync(int encounterId, UpdateClinicalNoteRequest request, int doctorId)
         {
+            await GetEditableEncounterAsync(encounterId, doctorId);
+
             var note = await _dbContext.ClinicalNotes.FirstOrDefaultAsync(n => n.EncounterId == encounterId);
             if (note == null) throw new Exception("Clinical Note not found.");
 
@@ -180,13 +232,21 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter to complete.</param>
         /// <returns>True if the encounter was successfully marked as completed.</returns>
         /// <exception cref="Exception">Thrown when the encounter is not found.</exception>
-      public async Task<bool> CompleteEncounterAsync(int encounterId, string username)
+      public async Task<bool> CompleteEncounterAsync(int encounterId, string username, int doctorId)
         {
             var encounter = await _dbContext.Encounters
                 .Include(e => e.Appointment)
                 .FirstOrDefaultAsync(e => e.Id == encounterId);
 
             if (encounter == null) throw new Exception("Encounter not found.");
+            if (encounter.DoctorId != doctorId)
+            {
+                throw new UnauthorizedAccessException("Only the assigned doctor can modify this encounter.");
+            }
+            if (encounter.Status != EncounterStatus.InProgress)
+            {
+                throw new InvalidOperationException("Only in-progress encounters can be completed.");
+            }
 
             encounter.Status = EncounterStatus.Completed;
             encounter.EndTime = DateTime.UtcNow;
@@ -204,10 +264,9 @@ namespace WebServices.SharedBusiness
         /// <summary>
         /// Sets an encounter status to 'Cancelled' to invalidate it without deleting data.
         /// </summary>
-        public async Task<bool> InvalidateEncounterAsync(int encounterId, InvalidateEncounterRequest request, string username)
+        public async Task<bool> InvalidateEncounterAsync(int encounterId, InvalidateEncounterRequest request, string username, int doctorId)
         {
-            var encounter = await _dbContext.Encounters.FindAsync(encounterId);
-            if (encounter == null) return false;
+            var encounter = await GetEditableEncounterAsync(encounterId, doctorId);
 
             encounter.Status = EncounterStatus.Cancelled;
             encounter.StatusReason = request.Reason;
@@ -223,10 +282,9 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter.</param>
         /// <param name="dto">The data transfer object containing the observation details.</param>
         /// <returns>True if the observation was successfully added; otherwise, false.</returns>
-        public async Task<bool> AddObservationAsync(int encounterId, CreateObservationDto dto)
+        public async Task<bool> AddObservationAsync(int encounterId, CreateObservationDto dto, int doctorId)
         {
-            var encounter = await _dbContext.Encounters.FindAsync(encounterId);
-            if (encounter == null) return false;
+            var encounter = await GetEditableEncounterAsync(encounterId, doctorId);
 
             _dbContext.ClinicalObservations.Add(new ClinicalObservation
             {
@@ -249,8 +307,10 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter.</param>
         /// <param name="observationId">The unique identifier of the observation to remove.</param>
         /// <returns>True if the observation was successfully removed; otherwise, false.</returns>
-        public async Task<bool> RemoveObservationAsync(int encounterId, int observationId)
+        public async Task<bool> RemoveObservationAsync(int encounterId, int observationId, int doctorId)
         {
+            await GetEditableEncounterAsync(encounterId, doctorId);
+
             var obs = await _dbContext.ClinicalObservations.FirstOrDefaultAsync(o => o.Id == observationId && o.EncounterId == encounterId);
             if (obs == null) return false;
 
@@ -265,10 +325,9 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter.</param>
         /// <param name="dto">The data transfer object containing the condition details.</param>
         /// <returns>True if the condition was successfully added; otherwise, false.</returns>
-        public async Task<bool> AddConditionAsync(int encounterId, CreateConditionDto dto)
+        public async Task<bool> AddConditionAsync(int encounterId, CreateConditionDto dto, int doctorId)
         {
-            var encounter = await _dbContext.Encounters.FindAsync(encounterId);
-            if (encounter == null) return false;
+            var encounter = await GetEditableEncounterAsync(encounterId, doctorId);
 
             _dbContext.Conditions.Add(new Condition
             {
@@ -289,8 +348,10 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter.</param>
         /// <param name="conditionId">The unique identifier of the condition to remove.</param>
         /// <returns>True if the condition was successfully removed; otherwise, false.</returns>
-        public async Task<bool> RemoveConditionAsync(int encounterId, int conditionId)
+        public async Task<bool> RemoveConditionAsync(int encounterId, int conditionId, int doctorId)
         {
+            await GetEditableEncounterAsync(encounterId, doctorId);
+
             var condition = await _dbContext.Conditions.FirstOrDefaultAsync(c => c.Id == conditionId && c.EncounterId == encounterId);
             if (condition == null) return false;
 
@@ -305,10 +366,9 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter.</param>
         /// <param name="dto">The data transfer object containing the procedure details.</param>
         /// <returns>True if the procedure was successfully added; otherwise, false.</returns>
-        public async Task<bool> AddProcedureAsync(int encounterId, CreateProcedureDto dto)
+        public async Task<bool> AddProcedureAsync(int encounterId, CreateProcedureDto dto, int doctorId)
         {
-            var encounter = await _dbContext.Encounters.FindAsync(encounterId);
-            if (encounter == null) return false;
+            var encounter = await GetEditableEncounterAsync(encounterId, doctorId);
 
             _dbContext.Procedures.Add(new Procedure
             {
@@ -330,8 +390,10 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter.</param>
         /// <param name="procedureId">The unique identifier of the procedure to remove.</param>
         /// <returns>True if the procedure was successfully removed; otherwise, false.</returns>
-        public async Task<bool> RemoveProcedureAsync(int encounterId, int procedureId)
+        public async Task<bool> RemoveProcedureAsync(int encounterId, int procedureId, int doctorId)
         {
+            await GetEditableEncounterAsync(encounterId, doctorId);
+
             var procedure = await _dbContext.Procedures.FirstOrDefaultAsync(p => p.Id == procedureId && p.EncounterId == encounterId);
             if (procedure == null) return false;
 
@@ -346,10 +408,9 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter.</param>
         /// <param name="dto">The data transfer object containing the allergy details.</param>
         /// <returns>True if the allergy was successfully added; otherwise, false.</returns>
-        public async Task<bool> AddAllergyAsync(int encounterId, CreateAllergyDto dto)
+        public async Task<bool> AddAllergyAsync(int encounterId, CreateAllergyDto dto, int doctorId)
         {
-            var encounter = await _dbContext.Encounters.FindAsync(encounterId);
-            if (encounter == null) return false;
+            var encounter = await GetEditableEncounterAsync(encounterId, doctorId);
 
             var criticalityEnum = Enum.Parse<AllergyCriticality>(dto.Criticality, true);
 
@@ -373,12 +434,57 @@ namespace WebServices.SharedBusiness
         /// <param name="encounterId">The unique identifier of the encounter.</param>
         /// <param name="allergyId">The unique identifier of the allergy to remove.</param>
         /// <returns>True if the allergy was successfully removed; otherwise, false.</returns>
-        public async Task<bool> RemoveAllergyAsync(int encounterId, int allergyId)
+        public async Task<bool> RemoveAllergyAsync(int encounterId, int allergyId, int doctorId)
         {
+            await GetEditableEncounterAsync(encounterId, doctorId);
+
             var allergy = await _dbContext.AllergyIntolerances.FirstOrDefaultAsync(a => a.Id == allergyId && a.EncounterId == encounterId);
             if (allergy == null) return false;
 
             _dbContext.AllergyIntolerances.Remove(allergy);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> AddLaboratoryRequestAsync(int encounterId, CreateLaboratoryRequestDto dto, int doctorId)
+        {
+            var encounter = await GetEditableEncounterAsync(encounterId, doctorId);
+
+            var laboratory = await _dbContext.Laboratories.FindAsync(dto.LaboratoryId);
+            if (laboratory == null)
+            {
+                throw new KeyNotFoundException("Laboratory not found.");
+            }
+
+            var encounterLaboratories = await _dbContext.EncounterLaboratories
+                .Include(l => l.LaboratoriesDetails)
+                    .ThenInclude(d => d.Laboratory)
+                .Where(l => l.Encounter != null && l.Encounter.Id == encounterId)
+                .ToListAsync();
+
+            var isDuplicate = encounterLaboratories
+                .SelectMany(l => l.LaboratoriesDetails ?? new List<EncounterLaboratoriesDetail>())
+                .Any(d => d.Laboratory != null && d.Laboratory.Id == dto.LaboratoryId);
+
+            if (isDuplicate)
+            {
+                throw new InvalidOperationException("This laboratory has already been requested for this encounter.");
+            }
+
+            _dbContext.EncounterLaboratories.Add(new EncounterLaboratories
+            {
+                Encounter = encounter,
+                DateOrdered = DateOnly.FromDateTime(DateTime.UtcNow),
+                LaboratoryStatus = LaboratoryStatus.Requested,
+                LaboratoriesDetails = new List<EncounterLaboratoriesDetail>
+                {
+                    new EncounterLaboratoriesDetail
+                    {
+                        Laboratory = laboratory
+                    }
+                }
+            });
+
             await _dbContext.SaveChangesAsync();
             return true;
         }
