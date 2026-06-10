@@ -569,6 +569,7 @@ namespace WebServices.SharedBusiness
             );
 
             return detailDto;
+        }
           
         public async Task<bool> AddLaboratoryRequestAsync(int encounterId, CreateLaboratoryRequestDto dto, int doctorId)
         {

@@ -15,7 +15,7 @@ namespace WebServices.Controllers.Encounter
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class EncounterController : ControllerBase
     {
         private readonly EncounterProcess _encounterProcess;
