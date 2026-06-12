@@ -72,32 +72,32 @@ namespace WebServices.Repositories
         /// <returns>A list of matching <see cref="Invoice"/> entities.</returns>
         public async Task<List<Invoice>> GetFilteredInvoicesAsync(InvoiceHistoryFilterDTO filter)
         {
-            // Start the base query with required eager loading to avoid N+1 issues
             var query = _databaseContext.DBInvoices
                 .Include(i => i.Patient)
                 .Include(i => i.Payments)
                 .AsQueryable();
-
-            // Apply patient multiselect filter if provided and not empty
+            
+             
             if (filter.PatientIds != null && filter.PatientIds.Any())
             {
                 query = query.Where(i => filter.PatientIds.Contains(i.PatientId));
             }
-
-            // Apply date range filter if both dates are provided
+            
             if (filter.StartDate.HasValue && filter.EndDate.HasValue)
             {
-                query = query.Where(i => i.IssuedDate >= filter.StartDate.Value && i.IssuedDate <= filter.EndDate.Value);
-            }
+                var start = filter.StartDate.Value.Date;
+                var end = filter.EndDate.Value.Date.AddDays(1).AddTicks(-1);
 
-            // Apply completed status filter
+                query = query.Where(i => i.IssuedDate >= start && i.IssuedDate <= end);
+            }
+             
+
             if (!filter.IncludeCompleted)
             {
-                // Exclude completed invoices (use the appropriate enum value)
-                query = query.Where(i => i.Status != InvoiceStatus.Paid);
+                query = query.Where(i => i.Status != Domain.Entities.InvoiceStatus.Paid);
             }
 
-            // Return results ordered by the most recent invoice
+           
             return await query.OrderByDescending(i => i.IssuedDate).ToListAsync();
         }
 
@@ -119,5 +119,6 @@ namespace WebServices.Repositories
                 .Include(i => i.Payments)
                 .FirstOrDefaultAsync(i => i.Id == invoiceId);
         }
+
     }
 }

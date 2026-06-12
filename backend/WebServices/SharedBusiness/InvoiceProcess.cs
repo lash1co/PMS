@@ -84,10 +84,8 @@ namespace WebServices.SharedBusiness
         /// <returns>A collection of mapped <see cref="InvoiceHistoryResultDTO"/>.</returns>
         public async Task<List<InvoiceHistoryResultDTO>> GetInvoiceHistoryAsync(InvoiceHistoryFilterDTO filter)
         {
-            // Fetch entities from the data access layer
             var invoices = await _billingRepository.GetFilteredInvoicesAsync(filter);
 
-            // Map entities to DTOs and calculate the remaining balance
             return invoices.Select(i =>
             {
                 var totalAmount = i.Amount;
@@ -98,7 +96,7 @@ namespace WebServices.SharedBusiness
                     InvoiceId = i.Id,
                     PatientName = $"{i.Patient.FirstName} {i.Patient.LastName}".Trim(),
                     InvoiceDate = i.IssuedDate,
-                    Status = i.Status.ToString(),
+                    Status = i.Status.ToString(), 
                     TotalAmount = totalAmount,
                     PaidAmount = paidAmount,
                     Balance = totalAmount - paidAmount
