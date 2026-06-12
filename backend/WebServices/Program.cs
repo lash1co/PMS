@@ -28,6 +28,8 @@ builder.Services.AddScoped<EncounterProcess>();
 builder.Services.AddScoped<IReportsRepository, ReportsRepository>();
 builder.Services.AddScoped<IReportsProcess, ReportsProcess>();
 
+builder.Services.AddScoped<WebServices.Repositories.BillingRepository>();
+
 // Adding Analytics services
 builder.Services.AddScoped<WebServices.Repositories.Analytics.AnalyticsRepository>();
 builder.Services.AddScoped<WebServices.SharedBusiness.Analytics.AnalyticsProcess>();

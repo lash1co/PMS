@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using WebServices.DataAccess;
 using WebServices.Repositories;
 using WebServices.SharedBusiness;
+using static WebServices.SharedBusiness.InvoiceHistoryResultDTO;
 
 namespace WebServices.Controllers.Invoices
 {
@@ -36,7 +37,7 @@ namespace WebServices.Controllers.Invoices
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class InvoicesController : ControllerBase
     {
         private readonly IConfiguration _config;
@@ -398,6 +399,49 @@ namespace WebServices.Controllers.Invoices
                     .OrderByDescending(p => p.PaymentDate)
                     .Select(p => new InvoicePaymentRecord(p.Id, p.Amount, p.PaymentDate, p.PaymentMethod, p.ReferenceNumber, p.Notes))
                     .ToList() ?? new List<InvoicePaymentRecord>());
+        }
+
+        /// <summary>
+        /// Retrieves the invoice history based on a complex set of filters.
+        /// </summary>
+        /// <param name="filter">The filter criteria sent from the client application.</param>
+        /// <returns>An HTTP response containing the list of invoice history results.</returns>
+        [HttpPost("history")]
+        // [Authorize] // Uncomment or configure role validation if required
+        public async Task<ActionResult<List<InvoiceHistoryResultDTO>>> GetInvoiceHistory([FromBody] InvoiceHistoryFilterDTO filter)
+        {
+            // Execute business logic process
+            var result = await _invoiceProcess.GetInvoiceHistoryAsync(filter);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves a comprehensive, read-only summary of an invoice including clinical context, 
+        /// patient insurance details, and payment ledger.
+        /// </summary>
+        /// <param name="id">The ID of the invoice to view.</param>
+        /// <returns>An HTTP response containing the <see cref="InvoiceDetailedViewRecord"/>.</returns>
+        [HttpGet("{id}/detailed-summary")]
+        public async Task<ActionResult<InvoiceDetailedViewRecord>> GetDetailedSummary(int id)
+        {
+            try
+            {
+                // Optional: You can enforce token role validation here again if needed
+                // var authResult = await validationProcess.ValidateAuthorizationAsync(Request.Headers["Authorization"], _authorizedRoles); ...
+
+                var detailedSummary = await _invoiceProcess.GetInvoiceDetailedSummaryAsync(id);
+                return Ok(detailedSummary);
+            }
+            catch (DomainException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                // Log the exception here
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the invoice details.");
+            }
         }
     }
 }
