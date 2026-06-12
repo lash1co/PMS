@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { InvoiceHistoryFilter, InvoiceHistoryResult, InvoiceDetailedView } from '../../Entities/Billing/billing-history';
 
 @Injectable({
   providedIn: 'root'
@@ -39,6 +40,20 @@ export class BillingService {
   private getAuthHeaders(): { Authorization: string } {
     const token = typeof localStorage === 'undefined' ? '' : localStorage.getItem('pms_token');
     return { Authorization: `Bearer ${token}` };
+  }
+
+  /**
+   * Retrieves the filtered history of invoices.
+   */
+  getInvoiceHistory(filter: InvoiceHistoryFilter): Observable<InvoiceHistoryResult[]> {
+    return this.http.post<InvoiceHistoryResult[]>(`${this.apiUrl}/history`, filter);
+  }
+
+  /**
+   * Retrieves the comprehensive detail view of a specific invoice.
+   */
+  getInvoiceDetailedSummary(invoiceId: number): Observable<InvoiceDetailedView> {
+    return this.http.get<InvoiceDetailedView>(`${this.apiUrl}/${invoiceId}/detailed-summary`);
   }
 
 }
