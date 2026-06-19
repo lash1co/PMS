@@ -44,7 +44,8 @@ namespace WebServices.SharedBusiness
         IEnumerable<object> Allergies,
         IEnumerable<object> Conditions,
         IEnumerable<object> Procedures,
-        IEnumerable<object> Laboratories
+        IEnumerable<object> Laboratories,
+        IEnumerable<object> PrescriptionMedications
     );
 
     /// <summary>

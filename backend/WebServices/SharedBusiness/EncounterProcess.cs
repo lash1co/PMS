@@ -128,6 +128,8 @@ namespace WebServices.SharedBusiness
                 .Include(e => e.Procedures)
                 .Include(e => e.Allergies)
                 .Include(e => e.Prescriptions)
+                    .ThenInclude(p => p.Medications)
+                    .ThenInclude(m => m.Medication)
                 .Include(e => e.Laboratories)
                     .ThenInclude(l => l.LaboratoriesDetails)
                         .ThenInclude(d => d.Laboratory)
@@ -178,6 +180,16 @@ namespace WebServices.SharedBusiness
                     }) ?? new List<object>())
                 ?? new List<object>();
 
+            var prescriptionMedications = encounter.Prescriptions
+                .SelectMany( p => p.Medications
+                    .Select(p => (object) new
+                    {
+                        medicationCode = $"MED - {p.Medication.Id}",
+                        medicationDisplayName = p.Medication.Name,
+                        dosage = p.Dosage,
+                        refils = p.Refills
+                    }) ?? new List<object>());
+
             return new EncounterSummaryDto(
                 encounter.Id,
                 encounter.AppointmentId,
@@ -192,13 +204,14 @@ namespace WebServices.SharedBusiness
                 encounter.Conditions?.Count ?? 0,
                 encounter.Procedures?.Count ?? 0,
                 encounter.Allergies?.Count ?? 0,
-                encounter.Prescriptions?.Count ?? 0,
+                prescriptionMedications.Count(),
                 laboratoriesList.Count(),
                 observationsList,
                 allergiesList,
                 conditionsList,
                 proceduresList,
-                laboratoriesList
+                laboratoriesList,
+                prescriptionMedications
             );
         }
 

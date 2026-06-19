@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { getPmsToken } from '../../utils/storage.util';
 import { environment } from '../../../environments/environment';
+import { PrescriptionMedication } from '../../models/prescription-medication.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +21,7 @@ export class LaboratoryService {
       }
     });
   }
+
 
   createLaboratory(laboratory: LaboratoryInterface): Observable<any> {
     return this.http.post<any>(this.apiUrl, laboratory, {
