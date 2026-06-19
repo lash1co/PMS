@@ -163,6 +163,18 @@
           <span class="layout-nav-label">Encounter History</span>
         }
       </a>
+
+      <a
+        routerLink="/billing-history"
+        routerLinkActive="layout-nav-link--active"
+        class="layout-nav-link"
+        [title]="sidebarCollapsed() ? 'Billing History' : ''"
+      >
+        <span class="material-icons layout-nav-ico" aria-hidden="true">history_edu</span>
+        @if (!sidebarCollapsed()) {
+          <span class="layout-nav-label">Billing History</span>
+        }
+      </a>
     </nav>
 
     <div class="layout-aside-footer">
