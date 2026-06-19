@@ -106,8 +106,47 @@ export class EncounterService {
   getEncounterHistoryDetail(id: number): Observable<EncounterHistoryDetail> {
     return this.http.get<EncounterHistoryDetail>(`${this.apiUrl}/${id}/history-detail`, this.getAuthHeaders());
   }
-  
+
   addLaboratoryRequest(id: number, laboratoryId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${id}/laboratories`, { laboratoryId }, this.getAuthHeaders());
+  }
+
+  /**
+   * Fetchs the list of medications associated with a specific encounter's prescription.
+   * This is used to populate the prescription tab in the encounter modal.
+   * The endpoint returns an array of medications with details like code, display name, dosage, and refills.
+   */
+  getPrescriptionMedications(): Observable<MedicationInterface[]> {
+    const mockMedications: MedicationInterface[] = [
+      { medicationCode: 'MED001', medicationDisplayName: 'Amoxicillin 500mg', dosage: '500mg every 8 hours', refils: 3 },
+      { medicationCode: 'MED002', medicationDisplayName: 'Ibuprofen 200mg', dosage: '200mg every 6 hours as needed for pain', refils: 2 }
+    ];
+
+    return new Observable<MedicationInterface[]>(observer => {
+      setTimeout(() => {
+        observer.next(mockMedications);
+        observer.complete();
+      }, 1000);
+    });
+      /*
+    return this.http.get<MedicationInterface[]>(`${environment.apiUrl}/api/Prescriptions/medications`, {
+      headers: {
+        Authorization: `Bearer ${getPmsToken()}`
+      }
+    });*/
+  }
+
+  getAvailableMedications(): Observable<MedicationInterface[]> {
+    const mockMedications: MedicationInterface[] = [
+      { medicationCode: 'MED003', medicationDisplayName: 'Lisinopril 10mg', dosage: '', refils: 0 },
+      { medicationCode: 'MED004', medicationDisplayName: 'Metformin 500mg', dosage: '', refils: 0 },
+      { medicationCode: 'MED005', medicationDisplayName: 'Atorvastatin 20mg', dosage: '', refils: 0 }
+    ];
+    return new Observable<MedicationInterface[]>(observer => {
+      setTimeout(() => {
+        observer.next(mockMedications);
+        observer.complete();
+      }, 1000);
+    });
   }
 }

@@ -1,0 +1,38 @@
+.container {
+  padding: 24px;
+}
+
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.text-input {
+  font-size: 1.25rem;
+  font-weight: 600;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.card_content {
+  background-color: rgb(165, 201, 219);
+  border-color: beige;
+}
+
+.rounded-card {
+  border-radius: 20px !important;
+  overflow: hidden; /* Prevents nested child colors from clipping the corners */
+}
+
+.rounded-main-button {
+  border-radius: 15px !important;
+}
+
+:host ::ng-deep .mat-mdc-card-header {
+  min-height: 80px;
+  background-color: rgb(82, 96, 189);
+  color: beige;
+  display: flex;
+  align-items: center; /* Optional: Aligns content vertically */
+}

@@ -1,6 +1,6 @@
 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
   <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl h-[85vh] flex flex-col rounded-lg overflow-hidden">
-    
+
     <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-gray-50 rounded-t-lg">
       <h3 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
         <span>Encounter #{{ encounterId }}</span>
@@ -16,7 +16,7 @@
         <p class="text-gray-500">Loading encounter data...</p>
       </div>
     } @else if (summary()) {
-      
+
       <div class="border-b border-gray-200 bg-white px-6 pt-2 flex overflow-x-auto">
         <button (click)="setTab('summary')" [class.border-blue-500]="activeTab() === 'summary'" [class.text-blue-600]="activeTab() === 'summary'" class="px-4 py-2 border-b-2 border-transparent font-medium text-gray-600 hover:text-blue-500 transition whitespace-nowrap">Summary</button>
         <button (click)="setTab('notes')" [class.border-blue-500]="activeTab() === 'notes'" [class.text-blue-600]="activeTab() === 'notes'" class="px-4 py-2 border-b-2 border-transparent font-medium text-gray-600 hover:text-blue-500 transition whitespace-nowrap">Clinical Notes</button>
@@ -26,6 +26,7 @@
         <button (click)="setTab('procedures')" [class.border-blue-500]="activeTab() === 'procedures'" [class.text-blue-600]="activeTab() === 'procedures'" class="px-4 py-2 border-b-2 border-transparent font-medium text-gray-600 hover:text-blue-500 transition whitespace-nowrap">Procedures ({{summary()?.proceduresCount}})</button>
         @if (isDoctor()) {
           <button (click)="setTab('laboratories')" [class.border-blue-500]="activeTab() === 'laboratories'" [class.text-blue-600]="activeTab() === 'laboratories'" class="px-4 py-2 border-b-2 border-transparent font-medium text-gray-600 hover:text-blue-500 transition whitespace-nowrap">Laboratories ({{summary()?.laboratoriesCount}})</button>
+          <button (click)="setTab('prescription')" [class.border-blue-500]="activeTab() === 'prescription'" [class.text-blue-600]="activeTab() === 'prescription'" class="px-4 py-2 border-b-2 border-transparent font-medium text-gray-600 hover:text-blue-500 transition whitespace-nowrap">Prescription ({{prescriptionMedications().length}})</button>
         }
       </div>
 
@@ -38,7 +39,7 @@
 
        @if (activeTab() === 'summary') {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
               <h4 class="font-semibold text-gray-800 mb-4 border-b pb-2 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/O/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-blue-600">
@@ -46,13 +47,13 @@
                 </svg>
                 General Information
               </h4>
-              
+
               <div class="space-y-4">
                 <div class="grid grid-cols-3 gap-2">
                   <div class="col-span-1 text-sm font-medium text-gray-500">Patient</div>
                   <div class="col-span-2 text-sm font-semibold text-gray-900">{{ summary()?.patientName }}</div>
                 </div>
-                
+
                 <div class="grid grid-cols-3 gap-2">
                   <div class="col-span-1 text-sm font-medium text-gray-500">Attending Dr.</div>
                   <div class="col-span-2 text-sm font-semibold text-gray-900 text-blue-700">Dr. {{ summary()?.doctorName }}</div>
@@ -75,8 +76,8 @@
                   </div>
                 </div>
               </div>
-              
-              <div class="flex items-center gap-2 mt-6 p-3 rounded-md transition-colors" 
+
+              <div class="flex items-center gap-2 mt-6 p-3 rounded-md transition-colors"
                    [ngClass]="isNoteCompleted() ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'">
                 <span class="flex h-3 w-3 rounded-full" [ngClass]="isNoteCompleted() ? 'bg-green-500' : 'bg-yellow-500'"></span>
                 <span class="text-sm font-medium" [ngClass]="isNoteCompleted() ? 'text-green-700' : 'text-yellow-700'">
@@ -92,23 +93,23 @@
                 </svg>
                 Clinical Records Summary
               </h4>
-              
+
               <div class="grid grid-cols-2 gap-4">
                 <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center justify-center">
                   <span class="text-2xl font-bold text-gray-800">{{ summary()?.observationsCount }}</span>
                   <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Observations</span>
                 </div>
-                
+
                 <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center justify-center">
                   <span class="text-2xl font-bold text-gray-800">{{ summary()?.conditionsCount }}</span>
                   <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Conditions</span>
                 </div>
-                
+
                 <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center justify-center">
                   <span class="text-2xl font-bold text-gray-800">{{ summary()?.allergiesCount }}</span>
                   <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Allergies</span>
                 </div>
-                
+
                 <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col items-center justify-center">
                   <span class="text-2xl font-bold text-gray-800">{{ summary()?.proceduresCount }}</span>
                   <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Procedures</span>
@@ -119,22 +120,22 @@
                   <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Laboratories</span>
                 </div>
               </div>
-              
+
               <div class="mt-4 bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center justify-between">
                 <span class="text-sm font-medium text-blue-800">Prescriptions Issued</span>
                 <span class="text-lg font-bold text-blue-900 bg-white px-3 py-1 rounded-md shadow-sm">{{ summary()?.prescriptionsCount }}</span>
               </div>
             </div>
           </div>
-          
+
           <div class="mt-8 flex justify-end">
-            <button *ngIf="summary()?.status !== 'Cancelled'" 
-              (click)="invalidateEncounter()" 
+            <button *ngIf="summary()?.status !== 'Cancelled'"
+              (click)="invalidateEncounter()"
               class="px-6 py-2 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 font-medium">
               Invalidate Encounter
             </button>
-             <button *ngIf="summary()?.status !== 'Completed' && summary()?.status !== 'Cancelled'" 
-                     (click)="completeEncounter()" 
+             <button *ngIf="summary()?.status !== 'Completed' && summary()?.status !== 'Cancelled'"
+                     (click)="completeEncounter()"
                      class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 font-medium shadow-sm transition">
                 Finish & Complete Encounter
              </button>
@@ -145,13 +146,13 @@
           <div class="bg-white p-4 rounded shadow-sm border border-gray-200 space-y-4">
             <div class="flex justify-between items-center border-b pb-2">
               <h4 class="font-semibold text-gray-700">Clinical Narrative (SOAP Note)</h4>
-              <button (click)="toggleEditNote()" 
+              <button (click)="toggleEditNote()"
                       class="text-sm px-3 py-1 rounded border transition"
                       [ngClass]="isEditingNote() ? 'bg-gray-100 text-gray-600 border-gray-300' : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'">
                 {{ isEditingNote() ? 'Cancel Editing' : 'Edit Note' }}
               </button>
             </div>
-            
+
             <div class="grid grid-cols-1 gap-4">
               <div>
                 <label class="block text-sm font-medium" [ngClass]="isEditingNote() ? 'text-blue-700' : 'text-gray-500'">Subjective (Patient's History)</label>
@@ -178,7 +179,7 @@
                           [ngClass]="!isEditingNote() ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-white border-blue-300 focus:ring-1 focus:ring-blue-500'"></textarea>
               </div>
             </div>
-            
+
             @if (isEditingNote()) {
               <div class="flex justify-end pt-2">
                 <button (click)="saveNotes()" [disabled]="isSaving()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 shadow-sm disabled:opacity-50">
@@ -205,7 +206,7 @@
                 @for (obs of summary()?.observations; track obs.id) {
                   <li class="py-3 flex justify-between items-center">
                     <div>
-                      <span class="font-medium text-gray-800">{{ obs.displayName }}</span>: {{ obs.valueString }} {{ obs.unit }} 
+                      <span class="font-medium text-gray-800">{{ obs.displayName }}</span>: {{ obs.valueString }} {{ obs.unit }}
                       <span class="text-xs text-gray-500 ml-2">({{ obs.category }})</span>
                     </div>
                     <button (click)="deleteObservation(obs.id)" class="text-red-500 hover:text-red-700 text-sm">Remove</button>
@@ -314,69 +315,115 @@
           </div>
         }
 
-        @if (activeTab() === 'laboratories' && isDoctor()) {
-          <div class="grid grid-cols-3 gap-6">
-            <div class="col-span-1 bg-white p-4 rounded shadow-sm border border-gray-200 h-fit">
-              <h4 class="font-semibold text-gray-700 mb-4 border-b pb-2">Request Laboratory</h4>
-              @if (isLoadingLaboratories()) {
-                <p class="text-sm text-gray-500 mb-4">Loading laboratories...</p>
-              } @else {
-                <select [(ngModel)]="laboratoryRequestForm().laboratoryId" class="w-full mb-4 p-2 border rounded bg-white">
-                  <option [ngValue]="null">Select a laboratory</option>
-                  @for (lab of availableLaboratories(); track lab.id || lab.Id) {
-                    <option [ngValue]="lab.id || lab.Id">
-                      {{ lab.description }} - {{ lab.price | currency }}
-                    </option>
-                  }
-                </select>
-                @if (availableLaboratories().length === 0) {
-                  <p class="text-sm text-gray-500 mb-4">All available laboratories have already been requested for this encounter.</p>
-                }
-                <button (click)="addLaboratoryRequest()" [disabled]="isSaving() || availableLaboratories().length === 0" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
-                  {{ isSaving() ? 'Creating...' : 'Create Request' }}
-                </button>
-              }
-            </div>
-            <div class="col-span-2 bg-white p-4 rounded shadow-sm border border-gray-200">
-              <h4 class="font-semibold text-gray-700 mb-4 border-b pb-2">Laboratory Requests</h4>
-              <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th class="px-3 py-2 text-left font-medium text-gray-500">Laboratory</th>
-                      <th class="px-3 py-2 text-left font-medium text-gray-500">Status</th>
-                      <th class="px-3 py-2 text-left font-medium text-gray-500">Ordered</th>
-                      <th class="px-3 py-2 text-right font-medium text-gray-500">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-100">
-                    @for (lab of summary()?.laboratories; track lab.requestId) {
-                      <tr>
-                        <td class="px-3 py-2 text-gray-800">
-                          <div class="font-medium">{{ lab.description }}</div>
-                          <div class="text-xs text-gray-500">
-                            {{ lab.timeToCompleteInHours }}h
-                            @if (lab.noFoodBeforeExecuted) { <span> · No food before execution</span> }
-                            @if (lab.liquidIngestionBeforeExecuted) { <span> · Liquid ingestion required</span> }
-                          </div>
-                        </td>
-                        <td class="px-3 py-2">
-                          <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">{{ lab.status }}</span>
-                        </td>
-                        <td class="px-3 py-2 text-gray-600">{{ lab.dateOrdered }}</td>
-                        <td class="px-3 py-2 text-right text-gray-800">{{ lab.price | currency }}</td>
-                      </tr>
-                    } @empty {
-                      <tr>
-                        <td colspan="4" class="px-3 py-4 text-gray-500">No laboratory requests created yet.</td>
-                      </tr>
+        @if (isDoctor()) {
+          @if (activeTab() === 'laboratories') {
+            <div class="grid grid-cols-3 gap-6">
+              <div class="col-span-1 bg-white p-4 rounded shadow-sm border border-gray-200 h-fit">
+                <h4 class="font-semibold text-gray-700 mb-4 border-b pb-2">Request Laboratory</h4>
+                @if (isLoadingLaboratories()) {
+                  <p class="text-sm text-gray-500 mb-4">Loading laboratories...</p>
+                } @else {
+                  <select [(ngModel)]="laboratoryRequestForm().laboratoryId" class="w-full mb-4 p-2 border rounded bg-white">
+                    <option [ngValue]="null">Select a laboratory</option>
+                    @for (lab of availableLaboratories(); track lab.id || lab.Id) {
+                      <option [ngValue]="lab.id || lab.Id">
+                        {{ lab.description }} - {{ lab.price | currency }}
+                      </option>
                     }
-                  </tbody>
-                </table>
+                  </select>
+                  @if (availableLaboratories().length === 0) {
+                    <p class="text-sm text-gray-500 mb-4">All available laboratories have already been requested for this encounter.</p>
+                  }
+                  <button (click)="addLaboratoryRequest()" [disabled]="isSaving() || availableLaboratories().length === 0" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+                    {{ isSaving() ? 'Creating...' : 'Create Request' }}
+                  </button>
+                }
+              </div>
+              <div class="col-span-2 bg-white p-4 rounded shadow-sm border border-gray-200">
+                <h4 class="font-semibold text-gray-700 mb-4 border-b pb-2">Laboratory Requests</h4>
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th class="px-3 py-2 text-left font-medium text-gray-500">Laboratory</th>
+                        <th class="px-3 py-2 text-left font-medium text-gray-500">Status</th>
+                        <th class="px-3 py-2 text-left font-medium text-gray-500">Ordered</th>
+                        <th class="px-3 py-2 text-right font-medium text-gray-500">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                      @for (lab of summary()?.laboratories; track lab.requestId) {
+                        <tr>
+                          <td class="px-3 py-2 text-gray-800">
+                            <div class="font-medium">{{ lab.description }}</div>
+                            <div class="text-xs text-gray-500">
+                              {{ lab.timeToCompleteInHours }}h
+                              @if (lab.noFoodBeforeExecuted) { <span> · No food before execution</span> }
+                              @if (lab.liquidIngestionBeforeExecuted) { <span> · Liquid ingestion required</span> }
+                            </div>
+                          </td>
+                          <td class="px-3 py-2">
+                            <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">{{ lab.status }}</span>
+                          </td>
+                          <td class="px-3 py-2 text-gray-600">{{ lab.dateOrdered }}</td>
+                          <td class="px-3 py-2 text-right text-gray-800">{{ lab.price | currency }}</td>
+                        </tr>
+                      } @empty {
+                        <tr>
+                          <td colspan="4" class="px-3 py-4 text-gray-500">No laboratory requests created yet.</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
+          }
+
+          @if (activeTab() === 'prescription') {
+            @if (!isAddingMedication()) {
+              <div class="grid grid-cols-3 gap-6">
+                <div class="col-span-3 bg-white p-4 rounded shadow-sm border border-gray-200 min-w-full">
+                  <div class="flex justify-between items-center border-b pb-2">
+                    <h4 class="font-semibold text-gray-700 mb-4">Prescription</h4>
+                    <button (click)="addMedication()" class="text-sm px-3 py-1 rounded border transition bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Medication</button>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                      <thead class="bg-gray-50">
+                        <tr>
+                          <th class="px-3 py-2 text-left font-medium text-gray-500">Medication</th>
+                          <th class="px-3 py-2 text-left font-medium text-gray-500">Dosage</th>
+                          <th class="px-3 py-2 text-left font-medium text-gray-500">Refills</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-100">
+                        @for (presc of this.prescriptionMedications(); track presc.medicationCode) {
+                          <tr>
+                            <td class="px-3 py-2 text-gray-800">{{ presc.medicationDisplayName }}</td>
+                            <td class="px-3 py-2 text-gray-600">{{ presc.dosage }}</td>
+                            <td class="px-3 py-2 text-gray-600">{{ presc.refils }}</td>
+                          </tr>
+                        } @empty {
+                          <tr>
+                            <td colspan="4" class="px-3 py-4 text-gray-500">No medications prescribed yet.</td>
+                          </tr>
+                        }
+                    </table>
+                  </div>
+                </div>
+              </div>
+            }
+            @else {
+              <app-medication-card-list
+                [availableMedications]="availableMedications()"
+                (close)="cancelAddPrescription()"
+                (add)="addMedicationToPrescription($event)">
+              </app-medication-card-list>
+            }
+          }
         }
+
       </div>
     }
   </div>

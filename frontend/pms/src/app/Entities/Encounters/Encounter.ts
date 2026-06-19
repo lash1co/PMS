@@ -24,11 +24,13 @@ export interface EncounterSummaryDto {
   allergiesCount: number;
   prescriptionsCount: number;
   laboratoriesCount: number;
-  observations: any[]; 
+  medicationCount: number;
+  observations: any[];
   allergies: any[];
   conditions: any[];
   procedures: any[];
   laboratories: any[];
+  prescriptionMedications: any[];
 }
 
 export interface EncounterHistoryFilter {

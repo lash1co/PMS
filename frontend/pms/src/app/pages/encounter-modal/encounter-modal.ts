@@ -1,3 +1,4 @@
+import { PrescriptionMedication } from './../../models/prescription-medication.model';
 // src/app/pages/encounter-modal/encounter-modal.ts
 import { Component, Input, Output, EventEmitter, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -6,12 +7,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { EncounterSummaryDto } from '../../Entities/Encounters/Encounter';
 import { EncounterService } from '../../services/encounter/encounter.service';
 import { LaboratoryService } from '../../services/laboratory/laboratory.service';
+import { MedicationCardListComponent } from '../medication-card-list/medication-card-list.component';
 import { getPmsUserRole } from '../../utils/storage.util';
 
 @Component({
   selector: 'app-encounter-modal',
   standalone: true,
-  imports: [CommonModule, MatFormFieldModule, FormsModule],
+  imports: [CommonModule, MatFormFieldModule, FormsModule, MedicationCardListComponent],
   templateUrl: './encounter-modal.html',
   styleUrl: './encounter-modal.css',
 })
@@ -25,11 +27,15 @@ export class EncounterModal implements OnInit {
   private laboratoryService = inject(LaboratoryService);
 
   // State Signals
-  activeTab = signal<'summary' | 'notes' | 'observations' | 'conditions' | 'allergies' | 'procedures' | 'laboratories'>('summary');
+  activeTab = signal<'summary' | 'notes' | 'observations' | 'conditions' | 'allergies' | 'procedures' | 'laboratories' | 'prescription'>('summary');
   summary = signal<EncounterSummaryDto | null>(null);
   laboratories = signal<any[]>([]);
+  prescriptionMedications = signal<MedicationInterface[]>([]);
+  availableMedications = signal<MedicationInterface[]>([]);
   isLoading = signal<boolean>(true);
   isLoadingLaboratories = signal<boolean>(false);
+  isLoadingMedications = signal<boolean>(false);
+  isAddingMedication = signal<boolean>(false);
   isSaving = signal<boolean>(false);
   errorMessage = signal<string>('');
   successMessage = signal<string>('');
@@ -45,7 +51,7 @@ export class EncounterModal implements OnInit {
   procedureForm = signal({ code: '', displayName: '', status: 'Completed' });
   laboratoryRequestForm = signal<{ laboratoryId: number | null }>({ laboratoryId: null });
 
-  
+
 
   // Computed signal to detect if the clinical note is "Complete"
   // Requirement: All 4 fields must have at least 10 characters
@@ -67,6 +73,7 @@ export class EncounterModal implements OnInit {
 
   ngOnInit(): void {
     this.loadEncounterData();
+    this.loadAvailableMedications();
   }
 
   // Fetches data and updates signals
@@ -85,10 +92,11 @@ export class EncounterModal implements OnInit {
         // If the note is already completed, we start in "view mode" (blocked)
         // If it's empty, we allow editing immediately
         this.isEditingNote.set(!this.isNoteCompleted());
-        
+
         this.isLoading.set(false);
         if (this.isDoctor()) {
           this.loadLaboratories();
+          this.loadPrescriptionMedications();
         }
       },
       error: () => {
@@ -116,7 +124,34 @@ export class EncounterModal implements OnInit {
     });
   }
 
-  setTab(tab: 'summary' | 'notes' | 'observations' | 'conditions' | 'allergies' | 'procedures' | 'laboratories'): void {
+  private loadPrescriptionMedications(): void {
+    /*if (this.prescriptionMedications().length > 0 || this.isLoadingMedications()) {
+      return;
+    }*/
+    this.isLoadingMedications.set(true);
+    this.encounterService.getPrescriptionMedications().subscribe({
+      next: (data) => {
+        this.prescriptionMedications.set(data);
+        this.isLoadingMedications.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Failed to load medications.');
+        this.isLoadingMedications.set(false);
+      }
+    });
+    console.log('Loaded prescription medications:', this.prescriptionMedications());
+  }
+
+  private loadAvailableMedications(): void {
+    this.encounterService.getAvailableMedications().subscribe({
+      next: (data) => {
+        this.availableMedications.set(data);
+      }
+    });
+  }
+
+
+  setTab(tab: 'summary' | 'notes' | 'observations' | 'conditions' | 'allergies' | 'procedures' | 'laboratories' | 'prescription'): void {
     if (tab === 'laboratories' && !this.isDoctor()) {
       return;
     }
@@ -126,6 +161,10 @@ export class EncounterModal implements OnInit {
 
     if (tab === 'laboratories') {
       this.loadLaboratories();
+    }
+
+    if (tab === 'prescription') {
+      this.loadPrescriptionMedications();
     }
   }
 
@@ -148,7 +187,7 @@ export class EncounterModal implements OnInit {
         this.successMessage.set('Clinical notes updated successfully.');
         this.isSaving.set(false);
         this.isEditingNote.set(false); // Lock fields after saving
-        this.loadEncounterData(); 
+        this.loadEncounterData();
       },
       error: () => {
         this.errorMessage.set('Failed to save clinical notes.');
@@ -242,6 +281,38 @@ export class EncounterModal implements OnInit {
         this.isSaving.set(false);
       }
     });
+  }
+
+  addMedication(): void {
+    // This method would open a modal to select medication and dosage, then call the service to add it to the encounter
+    // For simplicity, we will just log it here
+    console.log('Add medication - this would open a medication selection modal');
+    //alert('Add medication functionality is not implemented in this demo.');
+    this.isAddingMedication.set(true);
+  }
+
+  addMedicationToPrescription(medication: MedicationInterface): void {
+    // This method would be called after selecting a medication and entering dosage/refills in the modal
+    // For simplicity, we will just log it here
+    let meds = [...this.prescriptionMedications()];
+    const medIndex = meds.findIndex(med => med.medicationCode === medication.medicationCode);
+    if (medIndex === -1) {
+      console.log('Adding new medication in prescription:', medication);
+      meds = [...meds, medication];
+    }
+    else {
+      console.log('Updating existing medication in prescription:', medication);
+      meds = meds.map(m => m.medicationCode === medication.medicationCode ? medication : m);
+    }
+    console.log('Updated prescription medications:', meds);
+    this.prescriptionMedications.set(meds);
+    console.log('Final prescription medications to be sent to backend:', this.prescriptionMedications());
+
+    this.isAddingMedication.set(false);
+  }
+
+  cancelAddPrescription(): void {
+    this.isAddingMedication.set(false);
   }
 
   completeEncounter(): void {
