@@ -15,48 +15,46 @@ import { addMinutesToLabel } from '../../utils/schedule-time.util';
   standalone: true,
   imports: [CommonModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './booking-panel.component.scss',
   template: `
-    <div class="flex h-full flex-col rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <h3 class="text-sm font-semibold text-gray-800">Book appointment</h3>
-        <button (click)="closed.emit()" class="text-gray-400 hover:text-gray-600" aria-label="Close booking panel">✕</button>
+    <div class="sch-bp">
+      <div class="sch-bp-head">
+        <h3 class="ui-card-title">Book appointment</h3>
+        <button class="ui-close" (click)="closed.emit()" aria-label="Close booking panel">✕</button>
       </div>
 
       @if (availableSlots().length === 0) {
-        <div class="p-6 text-sm text-gray-500">No free slots on this day. Try another date.</div>
+        <div class="sch-bp-empty">No free slots on this day. Try another date.</div>
       } @else {
-        <div class="flex flex-col gap-4 overflow-y-auto p-4">
+        <div class="sch-bp-body">
           <!-- Time -->
           <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Time</label>
-            <select [ngModel]="selectedTime()" (ngModelChange)="selectedTime.set($event)"
-                    class="block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <label class="ui-label">Time</label>
+            <select class="ui-select" [ngModel]="selectedTime()" (ngModelChange)="selectedTime.set($event)">
               @for (slot of availableSlots(); track slot) {
                 <option [value]="slot">{{ slot }} – {{ endFor(slot) }}</option>
               }
             </select>
-            <p class="mt-1 text-xs text-gray-400">Fixed 30-minute appointment.</p>
+            <p class="sch-bp-hint">Fixed 30-minute appointment.</p>
           </div>
 
           <!-- Patient -->
-          <div class="relative">
-            <label class="mb-1 block text-sm font-medium text-gray-700">Patient</label>
+          <div class="sch-bp-field">
+            <label class="ui-label">Patient</label>
             @if (selectedPatient(); as p) {
-              <div class="flex items-center justify-between rounded-md border border-blue-200 bg-blue-50 px-3 py-2">
-                <span class="text-sm text-blue-900">{{ p.firstName }} {{ p.lastName }}</span>
-                <button (click)="clearPatient()" class="text-blue-500 hover:text-blue-700" aria-label="Clear patient">✕</button>
+              <div class="sch-bp-selected">
+                <span class="sch-bp-selected-name">{{ p.firstName }} {{ p.lastName }}</span>
+                <button class="sch-bp-selected-clear" (click)="clearPatient()" aria-label="Clear patient">✕</button>
               </div>
             } @else {
-              <input type="text" [(ngModel)]="patientTerm" (ngModelChange)="onSearch($event)"
-                     placeholder="Search by name or ID…"
-                     class="block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              <input type="text" class="ui-input" [(ngModel)]="patientTerm" (ngModelChange)="onSearch($event)"
+                     placeholder="Search by name or ID…" />
               @if (patientResults().length > 0) {
-                <div class="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
+                <div class="sch-bp-results">
                   @for (p of patientResults(); track p.id) {
-                    <button (click)="selectPatient(p)"
-                            class="block w-full border-b border-gray-100 px-3 py-2 text-left text-sm last:border-0 hover:bg-blue-50">
+                    <button class="sch-bp-result" (click)="selectPatient(p)">
                       <strong>{{ p.firstName }} {{ p.lastName }}</strong>
-                      <span class="ml-2 text-gray-500">(ID: {{ p.id }})</span>
+                      <span class="sch-bp-result-id">(ID: {{ p.id }})</span>
                     </button>
                   }
                 </div>
@@ -66,19 +64,17 @@ import { addMinutesToLabel } from '../../utils/schedule-time.util';
 
           <!-- Reason -->
           <div>
-            <label class="mb-1 block text-sm font-medium text-gray-700">Reason for visit</label>
-            <textarea [(ngModel)]="reason" rows="3" placeholder="e.g., Routine checkup…"
-                      class="block w-full rounded-md border border-gray-300 p-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+            <label class="ui-label">Reason for visit</label>
+            <textarea class="ui-input" [(ngModel)]="reason" rows="3" placeholder="e.g., Routine checkup…"></textarea>
           </div>
 
           @if (errorMessage()) {
-            <div class="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700">{{ errorMessage() }}</div>
+            <div class="sch-bp-error">{{ errorMessage() }}</div>
           }
         </div>
 
-        <div class="mt-auto border-t border-gray-200 p-4">
-          <button (click)="save()" [disabled]="!canSave()"
-                  class="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50">
+        <div class="sch-bp-foot">
+          <button class="ui-btn ui-btn-primary w-full" style="justify-content:center;" (click)="save()" [disabled]="!canSave()">
             {{ isSaving() ? 'Booking…' : 'Book appointment' }}
           </button>
         </div>

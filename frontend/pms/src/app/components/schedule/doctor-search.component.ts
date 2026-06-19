@@ -1,12 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DoctorOption } from '../../models/doctor.model';
-
-interface SpecialtyGroup {
-  specialty: string;
-  doctors: DoctorOption[];
-}
+import { DoctorOption, SpecialtyGroup } from '../../models/doctor.model';
 
 /**
  * Active doctor search: free-text by name/ID, with specialty quick-filter chips and
@@ -17,48 +12,38 @@ interface SpecialtyGroup {
   standalone: true,
   imports: [CommonModule, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './doctor-search.component.scss',
   template: `
     @if (selected(); as doc) {
-      <div class="flex items-center justify-between gap-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2">
-        <span class="text-sm text-blue-900">
+      <div class="sch-ds-selected">
+        <span class="sch-ds-selected-name">
           {{ doc.name }}
-          @if (doc.specialty) { <span class="ml-1 text-xs text-blue-500">· {{ doc.specialty }}</span> }
+          @if (doc.specialty) { <span class="sch-ds-selected-specialty">· {{ doc.specialty }}</span> }
         </span>
-        <button (click)="cleared.emit()" class="text-xs font-medium text-blue-600 hover:text-blue-800">Change</button>
+        <button class="sch-ds-selected-change" (click)="cleared.emit()">Change</button>
       </div>
     } @else {
-      <div class="relative">
-        <input type="text" [(ngModel)]="term" (focus)="open.set(true)"
-               placeholder="Search doctor by name or ID…"
-               class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+      <div class="sch-ds">
+        <input type="text" class="ui-input" [(ngModel)]="term" (focus)="open.set(true)"
+               placeholder="Search doctor by name or ID…" />
 
         @if (specialties().length > 1) {
-          <div class="mt-2 flex flex-wrap gap-1">
+          <div class="sch-ds-chips">
             @for (s of specialties(); track s) {
-              <button (click)="toggleSpecialty(s)"
-                      class="rounded-full border px-2 py-0.5 text-xs transition-colors"
-                      [class.border-blue-500]="specialtyFilter() === s"
-                      [class.bg-blue-50]="specialtyFilter() === s"
-                      [class.text-blue-700]="specialtyFilter() === s"
-                      [class.border-gray-300]="specialtyFilter() !== s"
-                      [class.text-gray-600]="specialtyFilter() !== s">
-                {{ s }}
-              </button>
+              <button class="ui-chip" [class.ui-chip--active]="specialtyFilter() === s"
+                      (click)="toggleSpecialty(s)">{{ s }}</button>
             }
           </div>
         }
 
         @if (open() && grouped().length > 0) {
-          <div class="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
+          <div class="sch-ds-dropdown">
             @for (group of grouped(); track group.specialty) {
-              <div class="border-b border-gray-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                {{ group.specialty }}
-              </div>
+              <div class="sch-ds-group-label">{{ group.specialty }}</div>
               @for (d of group.doctors; track d.id) {
-                <button (click)="pick(d)"
-                        class="block w-full border-b border-gray-50 px-3 py-2 text-left text-sm last:border-0 hover:bg-blue-50">
+                <button class="sch-ds-result" (click)="pick(d)">
                   <strong>{{ d.name }}</strong>
-                  <span class="ml-2 text-gray-500">(ID: {{ d.id }})</span>
+                  <span class="sch-ds-result-id">(ID: {{ d.id }})</span>
                 </button>
               }
             }

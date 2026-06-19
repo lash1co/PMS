@@ -3,3 +3,9 @@ export interface DoctorOption {
   name: string;
   specialty?: string;
 }
+
+/** Doctors grouped under a specialty heading for the search dropdown. */
+export interface SpecialtyGroup {
+  specialty: string;
+  doctors: DoctorOption[];
+}

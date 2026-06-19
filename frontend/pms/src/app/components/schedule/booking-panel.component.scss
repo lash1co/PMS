@@ -1,0 +1,112 @@
+/* Booking panel: a single-column form surface that fills the side column
+   (or the mobile bottom sheet). Shell + autocomplete bits live here; form
+   controls reuse the global ui-* primitives. */
+.sch-bp {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--pms-surface);
+  border: 1px solid var(--pms-border);
+  border-radius: var(--pms-radius-card);
+  box-shadow: var(--pms-shadow);
+  overflow: hidden;
+}
+
+.sch-bp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--pms-border);
+}
+
+.sch-bp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.sch-bp-empty {
+  padding: 1.5rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--pms-muted-2);
+}
+
+.sch-bp-hint {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  color: var(--pms-muted-2);
+}
+
+.sch-bp-foot {
+  margin-top: auto;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--pms-border);
+}
+
+/* Patient autocomplete */
+.sch-bp-field {
+  position: relative;
+}
+
+.sch-bp-selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  border-radius: var(--pms-radius-control);
+  padding: 0.5rem 0.75rem;
+}
+.sch-bp-selected-name { font-size: 0.875rem; color: #1e3a8a; }
+.sch-bp-selected-clear {
+  border: none;
+  background: transparent;
+  color: #3b82f6;
+  cursor: pointer;
+  line-height: 1;
+}
+.sch-bp-selected-clear:hover { color: #1d4ed8; }
+
+.sch-bp-results {
+  position: absolute;
+  z-index: 10;
+  margin-top: 0.25rem;
+  width: 100%;
+  max-height: 12rem;
+  overflow-y: auto;
+  background: var(--pms-surface);
+  border: 1px solid var(--pms-border);
+  border-radius: var(--pms-radius-control);
+  box-shadow: 0 10px 24px rgb(15 23 42 / 0.12);
+}
+.sch-bp-result {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--pms-hairline);
+  cursor: pointer;
+  color: var(--pms-text-strong);
+}
+.sch-bp-result:last-child { border-bottom: none; }
+.sch-bp-result:hover { background: #eff6ff; }
+.sch-bp-result-id { margin-left: 0.4rem; color: var(--pms-muted); }
+
+/* Inline error */
+.sch-bp-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  border-radius: var(--pms-radius-control);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: #b91c1c;
+}
+
+textarea.ui-input { resize: vertical; min-height: 4.5rem; }

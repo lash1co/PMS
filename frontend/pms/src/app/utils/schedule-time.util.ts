@@ -1,16 +1,11 @@
 /** Shared time helpers for the daily schedule (08:00–18:00, fixed 30-min slots). */
 
+import { DaySlot, SlotState, TimeRange } from '../models/timeline.model';
+
 export const DAY_START_HOUR = 8;
 export const DAY_END_HOUR = 18;
 export const SLOT_MINUTES = 30;
 export const DAY_TOTAL_MINUTES = (DAY_END_HOUR - DAY_START_HOUR) * 60;
-
-export interface DaySlot {
-  label: string;   // 'HH:mm'
-  minutes: number; // minutes from DAY_START_HOUR
-}
-
-export type SlotState = 'free' | 'busy' | 'past';
 
 export function generateDaySlots(): DaySlot[] {
   const slots: DaySlot[] = [];
@@ -58,11 +53,6 @@ export function isBeforeDay(a: Date, b: Date): boolean {
 export function nowMinutes(date: Date, now: Date): number | null {
   if (!isSameDay(date, now)) return null;
   return (now.getHours() - DAY_START_HOUR) * 60 + now.getMinutes();
-}
-
-interface TimeRange {
-  startTime: string;
-  endTime: string;
 }
 
 /** Whether a slot is free, occupied by an event, or in the past. */
