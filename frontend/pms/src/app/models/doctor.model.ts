@@ -9,3 +9,7 @@ export interface SpecialtyGroup {
   specialty: string;
   doctors: DoctorOption[];
 }
+
+export interface GpOption extends DoctorOption {
+  nextSlot: string;
+}

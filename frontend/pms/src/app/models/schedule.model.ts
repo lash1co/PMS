@@ -34,3 +34,19 @@ export interface AvailabilityResult {
   isAvailable: boolean;
   errorMessage: string;
 }
+
+export interface DaySummary {
+  total: number;
+  scheduled: number;
+  inProgress: number;
+  completed: number;
+  free: number;
+  restRange: string | null;
+}
+
+export interface NextSlot {
+  key: string;
+  dateLabel: string;
+  time: string;
+  date: Date;
+}

@@ -10,7 +10,7 @@
   }
 }
 
-/* Merged page header: icon + title/date + primary action in one row */
+/* Page header */
 .sch-header {
   display: flex;
   align-items: center;
@@ -20,16 +20,19 @@
   flex-shrink: 0;
   margin-bottom: 0.6rem;
 }
+
 .sch-header-left {
   display: flex;
   align-items: center;
   gap: 0.65rem;
 }
+
 .sch-header-icon {
   font-size: 1.625rem;
   color: var(--pms-primary);
   flex-shrink: 0;
 }
+
 .sch-header-date {
   font-size: 1.125rem;
   font-weight: 500;
@@ -37,6 +40,7 @@
   letter-spacing: -0.01em;
 }
 
+/* Controls bar */
 .sch-controls {
   display: flex;
   flex-direction: column;
@@ -75,21 +79,7 @@
   }
 }
 
-.sch-day-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.85rem;
-}
-
-.sch-day-label {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--pms-text-strong);
-}
-
+/* 3-column body grid */
 .sch-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -106,37 +96,7 @@
   }
 }
 
-/* GM quick access as 3rd grid column — sits top-aligned, doesn't stretch full height */
-.sch-qp-col {
-  align-self: start;
-}
-
-.sch-timeline-card {
-  overflow: hidden;
-}
-
-@media (min-width: 1024px) {
-  .sch-timeline-card {
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-.sch-timeline-scroll {
-  height: calc(100vh - 22rem);
-  min-height: 18rem;
-  overflow: auto;
-}
-
-@media (min-width: 1024px) {
-  .sch-timeline-scroll {
-    height: auto;
-    flex: 1;
-    min-height: 0;
-  }
-}
-
-/* Side column: GP quick panel + booking/overview stacked */
+/* Side column */
 .sch-side {
   min-width: 0;
   display: flex;
@@ -148,225 +108,14 @@
   .sch-side {
     min-height: 0;
   }
+
+  /* Booking open: side column spans cols 2+3 so the form uses the full right area */
+  .sch-side--booking {
+    grid-column: 2 / 4;
+  }
 }
 
-/* Next available slots card (selected doctor) */
-.sch-na-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid var(--pms-border);
-}
-
-.sch-na-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.sch-na-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--pms-hairline);
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-.sch-na-item:last-child { border-bottom: none; }
-.sch-na-item:hover { background: #eff6ff; }
-
-.sch-na-date {
-  font-size: 0.8125rem;
-  color: var(--pms-text-strong);
-}
-
-.sch-na-time {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--pms-primary);
-  flex-shrink: 0;
-}
-
-/* GP Quick Access card — desktop only, reference aside */
-.sch-qp { display: none; }
-
-@media (min-width: 1024px) {
-  .sch-qp { display: block; }
-}
-
-/* Quick access card — proper card look with a primary left-accent stripe */
-.sch-qp-ref {
-  background: var(--pms-surface);
-  border: 1px solid var(--pms-border);
-  border-left: 3px solid var(--pms-primary);
-  border-radius: var(--pms-radius-card);
-  box-shadow: var(--pms-shadow-md);
-  overflow: hidden;
-}
-
-.sch-qp-ref-title {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--pms-text-strong);
-}
-
-.sch-qp-ref-badge {
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--pms-primary);
-  background: #eff6ff;
-  border-radius: 0.25rem;
-  padding: 0.15rem 0.45rem;
-}
-
-.sch-qp-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid var(--pms-border);
-}
-
-.sch-qp-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.sch-qp-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.55rem 1rem;
-  border-bottom: 1px solid var(--pms-hairline);
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-.sch-qp-item:last-child { border-bottom: none; }
-.sch-qp-item:hover { background: #eff6ff; }
-.sch-qp-item--active { background: #eff6ff; }
-
-.sch-qp-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--pms-text-strong);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sch-qp-slot {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--pms-primary);
-  flex-shrink: 0;
-}
-
-.sch-qp-empty {
-  margin: 0;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  color: var(--pms-muted-2);
-}
-
-/* Timeline card header */
-.sch-tl-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.5rem 1.1rem;
-  border-bottom: 1px solid var(--pms-border);
-}
-
-.sch-tl-section-label {
-  display: block;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--pms-muted-2);
-  margin-bottom: 0.15rem;
-}
-
-/* Right cluster: stat pills + date badge */
-.sch-tl-head-right {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.sch-tl-head-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.sch-tl-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.05rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--pms-radius-control);
-  background: var(--pms-canvas);
-  border: 1px solid var(--pms-border);
-  line-height: 1;
-}
-
-.sch-tl-stat-n {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--pms-text-strong);
-}
-
-.sch-tl-stat-n--free { color: #16a34a; }
-
-.sch-tl-stat-cap {
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--pms-muted-2);
-}
-
-.sch-tl-default-hint {
-  margin: 0.3rem 0 0;
-  font-size: 0.75rem;
-  color: var(--pms-muted-2);
-  font-style: italic;
-  max-width: 28rem;
-}
-
-.sch-tl-date-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--pms-primary);
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: var(--pms-radius-control);
-  padding: 0.3rem 0.65rem;
-  white-space: nowrap;
-}
-
-/* Side column: booking panel (desktop in-flow, mobile bottom sheet) */
-
+/* Booking panel: mobile bottom sheet, desktop in-flow */
 .sch-side-sheet {
   position: fixed;
   inset-inline: 0;
@@ -382,6 +131,8 @@
     max-height: none;
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -396,79 +147,7 @@
   .sch-side-backdrop { display: none; }
 }
 
-.sch-side-empty {
-  display: none;
-  font-size: 0.875rem;
-}
-
-@media (min-width: 1024px) {
-  .sch-side-empty {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-  }
-}
-
-/* Day overview summary + status legend (side default state) */
-.sch-summary-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin: 0.85rem 0 1rem;
-}
-.sch-summary-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.75rem;
-  border: 1px solid var(--pms-border);
-  border-radius: var(--pms-radius-control);
-  background: var(--pms-canvas);
-}
-.sch-summary-num { font-size: 1.5rem; font-weight: 700; color: var(--pms-text); line-height: 1; }
-.sch-summary-cap { font-size: 0.75rem; color: var(--pms-muted-2); }
-
-.sch-legend {
-  list-style: none;
-  margin: 0 0 1rem;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.sch-legend li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--pms-text-strong);
-}
-.sch-legend-n { margin-left: auto; font-weight: 600; color: var(--pms-muted); }
-.sch-legend-dot {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 0.25rem;
-  border: 1px solid transparent;
-  flex-shrink: 0;
-}
-.sch-legend-dot--scheduled { background: #eff6ff; border-color: #93c5fd; }
-.sch-legend-dot--inprogress { background: #fffbeb; border-color: #fcd34d; }
-.sch-legend-dot--completed { background: #f0fdf4; border-color: #86efac; }
-.sch-legend-dot--rest {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgb(148 163 184 / 0.3) 2px, rgb(148 163 184 / 0.3) 4px);
-}
-
-.sch-side-tip {
-  margin: 0;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--pms-hairline);
-  font-size: 0.8125rem;
-  color: var(--pms-muted-2);
-}
-
+/* Empty state */
 .sch-empty {
   text-align: center;
   color: var(--pms-muted);

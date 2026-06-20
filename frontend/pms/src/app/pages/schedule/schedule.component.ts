@@ -4,24 +4,36 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DoctorService } from '../../services/doctor/doctor.service';
 import { ScheduleService } from '../../services/schedule/schedule.service';
 import { EncounterService } from '../../services/encounter/encounter.service';
-import { DayTimelineComponent } from '../../components/schedule/day-timeline.component';
 import { BookingPanelComponent } from '../../components/schedule/booking-panel.component';
 import { DoctorSearchComponent } from '../../components/schedule/doctor-search.component';
 import { AppointmentEditComponent } from '../../components/schedule/appointment-edit.component';
+import { ScheduleTimelineCardComponent } from '../../components/schedule/schedule-timeline-card.component';
+import { ScheduleNextAvailableComponent } from '../../components/schedule/schedule-next-available.component';
+import { ScheduleDayOverviewComponent } from '../../components/schedule/schedule-day-overview.component';
+import { ScheduleGmShortcutComponent } from '../../components/schedule/schedule-gm-shortcut.component';
 import { generateDaySlots, slotState, addMinutesToLabel, timeFromIso } from '../../utils/schedule-time.util';
-import { DoctorOption } from '../../models/doctor.model';
-import { ScheduleView } from '../../models/schedule.model';
+import { DoctorOption, GpOption } from '../../models/doctor.model';
+import { ScheduleView, DaySummary, NextSlot } from '../../models/schedule.model';
 import { ConfirmState } from '../../models/confirm-dialog.model';
 
 @Component({
   selector: 'app-schedule',
   standalone: true,
-  imports: [CommonModule, DayTimelineComponent, BookingPanelComponent, DoctorSearchComponent, AppointmentEditComponent],
+  imports: [
+    CommonModule,
+    BookingPanelComponent,
+    DoctorSearchComponent,
+    AppointmentEditComponent,
+    ScheduleTimelineCardComponent,
+    ScheduleNextAvailableComponent,
+    ScheduleDayOverviewComponent,
+    ScheduleGmShortcutComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './schedule.component.scss',
   template: `
     <div class="sch">
-      <!-- Page header: icon + title + today's date + primary action -->
+      <!-- Page header: icon + title + primary action -->
       <header class="sch-header">
         <div class="sch-header-left">
           <span class="material-icons sch-header-icon">calendar_month</span>
@@ -41,7 +53,7 @@ import { ConfirmState } from '../../models/confirm-dialog.model';
         }
       </header>
 
-      <!-- Controls -->
+      <!-- Controls bar: doctor search + date navigation -->
       <div class="ui-card sch-controls">
         <div class="sch-controls-search">
           <app-doctor-search
@@ -50,7 +62,6 @@ import { ConfirmState } from '../../models/confirm-dialog.model';
             (doctorSelected)="selectDoctor($event)"
             (cleared)="clearDoctor()" />
         </div>
-
         <div class="sch-datenav">
           <button class="ui-icon-btn" (click)="changeDate(-1)" aria-label="Previous day">
             <span class="material-icons text-lg">chevron_left</span>
@@ -63,75 +74,38 @@ import { ConfirmState } from '../../models/confirm-dialog.model';
         </div>
       </div>
 
-      <!-- Body -->
+      <!-- Main body -->
       @if (timelineDoctor(); as doc) {
         <div class="sch-grid">
-          <section class="ui-card sch-timeline-card">
-            <div class="sch-tl-card-head">
-              <div>
-                <span class="sch-tl-section-label">
-                  @if (isDefaultView()) { Next available · {{ doc.specialty || 'General Medicine' }} } @else { Day Timeline }
-                </span>
-                <h2 class="ui-card-title">{{ doc.name }}</h2>
-                @if (doc.specialty) { <span class="ui-card-meta">{{ doc.specialty }}</span> }
-                @if (isDefaultView()) {
-                  <p class="sch-tl-default-hint">No doctor selected — showing the next available {{ doc.specialty || 'General Medicine' }} slot. Search above to view a specific schedule.</p>
-                }
-              </div>
-              <div class="sch-tl-head-right">
-                @let s = daySummary();
-                <div class="sch-tl-head-stats">
-                  <span class="sch-tl-stat">
-                    <span class="sch-tl-stat-n">{{ s.total }}</span>
-                    <span class="sch-tl-stat-cap">booked</span>
-                  </span>
-                  <span class="sch-tl-stat">
-                    <span class="sch-tl-stat-n sch-tl-stat-n--free">{{ s.free }}</span>
-                    <span class="sch-tl-stat-cap">free</span>
-                  </span>
-                </div>
-                <div class="sch-tl-date-badge">
-                  <span class="material-icons" style="font-size:1rem;line-height:1;">event</span>
-                  {{ scheduleService.selectedDate() | date: 'EEE, MMM d' }}
-                </div>
-              </div>
-            </div>
-            <div class="sch-timeline-scroll">
-              <app-day-timeline
-                [events]="scheduleService.events()"
-                [date]="scheduleService.selectedDate()"
-                [loading]="scheduleService.isLoading()"
-                (slotSelected)="openBooking($event)"
-                (reschedule)="onRescheduleRequest($event)"
-                (dropBlocked)="showToast('error', $event)"
-                (editRequested)="openEdit($event)" />
-            </div>
-          </section>
 
-          <aside class="sch-side">
-            <!-- Next available slots for the selected doctor -->
-            <div class="ui-card sch-na">
-              <div class="sch-na-head">
-                <h3 class="ui-card-title">Next available</h3>
-                <span class="ui-pill">{{ doc.name.split(' ')[0] }}</span>
-              </div>
-              <ul class="sch-na-list">
-                @for (slot of nextSlots(); track slot.key) {
-                  <li class="sch-na-item" (click)="jumpToSlot(slot)">
-                    <span class="sch-na-date">{{ slot.dateLabel }}</span>
-                    <span class="sch-na-time">
-                      <span class="material-icons" style="font-size:0.75rem;line-height:1;">schedule</span>
-                      {{ slot.time }}
-                    </span>
-                  </li>
-                }
-              </ul>
-            </div>
+          <app-schedule-timeline-card
+            class="ui-card"
+            [doc]="doc"
+            [isDefaultView]="isDefaultView()"
+            [summary]="daySummary()"
+            [date]="scheduleService.selectedDate()"
+            [events]="scheduleService.events()"
+            [loading]="scheduleService.isLoading()"
+            (slotSelected)="openBooking($event)"
+            (reschedule)="onRescheduleRequest($event)"
+            (dropBlocked)="showToast('error', $event)"
+            (editRequested)="openEdit($event)" />
+
+          <!-- Side column: next-available + booking panel or day overview -->
+          <aside class="sch-side" [class.sch-side--booking]="bookingOpen()">
+            @if (!bookingOpen()) {
+              <app-schedule-next-available
+                class="ui-card"
+                [slots]="nextSlots()"
+                [doctorFirstName]="doc.name.split(' ')[0]"
+                (slotJumped)="jumpToSlot($event)" />
+            }
 
             @if (bookingOpen()) {
               <div class="sch-side-backdrop" (click)="closeBooking()"></div>
               <div class="sch-side-sheet">
                 <app-booking-panel
+                  [doc]="doc"
                   [doctorId]="doc.id"
                   [date]="scheduleService.selectedDate()"
                   [availableSlots]="availableSlots()"
@@ -140,60 +114,17 @@ import { ConfirmState } from '../../models/confirm-dialog.model';
                   (closed)="closeBooking()" />
               </div>
             } @else {
-              <div class="ui-card ui-card-pad sch-side-empty">
-                @let s = daySummary();
-                <h3 class="ui-card-title">Day overview</h3>
-                <div class="sch-summary-stats">
-                  <div class="sch-summary-stat">
-                    <span class="sch-summary-num">{{ s.total }}</span>
-                    <span class="sch-summary-cap">Booked</span>
-                  </div>
-                  <div class="sch-summary-stat">
-                    <span class="sch-summary-num">{{ s.free }}</span>
-                    <span class="sch-summary-cap">Free slots</span>
-                  </div>
-                </div>
-
-                <ul class="sch-legend">
-                  <li><span class="sch-legend-dot sch-legend-dot--scheduled"></span> Scheduled <span class="sch-legend-n">{{ s.scheduled }}</span></li>
-                  <li><span class="sch-legend-dot sch-legend-dot--inprogress"></span> In progress <span class="sch-legend-n">{{ s.inProgress }}</span></li>
-                  <li><span class="sch-legend-dot sch-legend-dot--completed"></span> Completed <span class="sch-legend-n">{{ s.completed }}</span></li>
-                  <li>
-                    <span class="sch-legend-dot sch-legend-dot--rest"></span>
-                    Rest period
-                    <span class="sch-legend-n">{{ s.restRange ?? '—' }}</span>
-                  </li>
-                </ul>
-
-                <p class="sch-side-tip">Click a free slot, or use "New appointment", to book.</p>
-              </div>
+              <app-schedule-day-overview class="ui-card ui-card-pad" [summary]="daySummary()" />
             }
-
           </aside>
 
-          <!-- General Medicine quick access — 3rd grid column on desktop -->
-          <div class="sch-qp sch-qp-ref sch-qp-col">
-            <div class="sch-qp-head">
-              <h3 class="sch-qp-ref-title">General Medicine</h3>
-              <span class="sch-qp-ref-badge">Shortcut</span>
-            </div>
-            @if (quickGPs().length === 0) {
-              <p class="sch-qp-empty">No General Medicine doctors available.</p>
-            } @else {
-              <ul class="sch-qp-list">
-                @for (gp of quickGPs(); track gp.id) {
-                  <li class="sch-qp-item" [class.sch-qp-item--active]="doc.id === gp.id"
-                      (click)="selectDoctor(gp)">
-                    <span class="sch-qp-name">{{ gp.name }}</span>
-                    <span class="sch-qp-slot">
-                      <span class="material-icons" style="font-size:0.875rem;line-height:1;">schedule</span>
-                      {{ gp.nextSlot }}
-                    </span>
-                  </li>
-                }
-              </ul>
-            }
-          </div>
+          <!-- General Medicine quick access — 3rd column, hidden while booking is open -->
+          @if (!bookingOpen()) {
+            <app-schedule-gm-shortcut
+              [doctors]="quickGPs()"
+              [activeDoctorId]="doc.id"
+              (doctorSelected)="selectDoctor($event)" />
+          }
         </div>
       } @else {
         <div class="ui-card sch-empty">
@@ -253,7 +184,6 @@ export class ScheduleComponent implements OnInit {
   readonly selectedDoctor = signal<DoctorOption | null>(null);
   readonly defaultDoctor = signal<DoctorOption | null>(null);
   readonly isDefaultView = signal(false);
-  /** The doctor whose schedule the timeline shows. Null selectedDoctor falls back to the default GM doctor. */
   readonly timelineDoctor = computed(() => this.selectedDoctor() ?? this.defaultDoctor());
   readonly bookingOpen = signal(false);
   readonly initialSlot = signal<string | null>(null);
@@ -263,7 +193,6 @@ export class ScheduleComponent implements OnInit {
 
   readonly dateInputValue = computed(() => toLocalDateKey(this.scheduleService.selectedDate()));
 
-  /** Free 'HH:mm' slots for the selected day (not busy, not past). */
   readonly availableSlots = computed(() => {
     const events = this.scheduleService.events();
     const date = this.scheduleService.selectedDate();
@@ -273,8 +202,7 @@ export class ScheduleComponent implements OnInit {
       .map((s) => s.label);
   });
 
-  /** Next 4 available slots for the timeline doctor across upcoming days (mock). */
-  readonly nextSlots = computed(() => {
+  readonly nextSlots = computed<NextSlot[]>(() => {
     const doc = this.timelineDoctor();
     if (!doc) return [];
     const TIMES = ['08:00', '09:30', '10:00', '11:30', '14:00', '15:00', '16:30'];
@@ -288,8 +216,7 @@ export class ScheduleComponent implements OnInit {
     });
   });
 
-  /** General Medicine doctors + a deterministic mock next-available slot. */
-  readonly quickGPs = computed(() => {
+  readonly quickGPs = computed<GpOption[]>(() => {
     const MOCK_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30'];
     return this.doctors()
       .filter(d => d.specialty === 'General Medicine')
@@ -297,8 +224,7 @@ export class ScheduleComponent implements OnInit {
       .map(d => ({ ...d, nextSlot: MOCK_SLOTS[Math.abs(d.id) % MOCK_SLOTS.length] }));
   });
 
-  /** Per-status counts + rest range for the side day-summary. */
-  readonly daySummary = computed(() => {
+  readonly daySummary = computed<DaySummary>(() => {
     const all = this.scheduleService.events();
     const appts = all.filter((e) => e.type !== 'Rest');
     const rests = all.filter((e) => e.type === 'Rest');
@@ -332,7 +258,6 @@ export class ScheduleComponent implements OnInit {
         const doctors = list ?? [];
         this.doctors.set(doctors);
 
-        // Prefer a GM doctor as default; fall back to the first doctor available.
         const fallback = doctors.find(d => d.specialty === 'General Medicine') ?? doctors[0];
         if (fallback) this.defaultDoctor.set(fallback);
 
@@ -342,7 +267,6 @@ export class ScheduleComponent implements OnInit {
           if (found) this.selectDoctor(found);
         } else if (fallback) {
           this.isDefaultView.set(true);
-          // Keep selectedDoctor null so the search bar appears empty in default view.
           this.scheduleService.selectedDoctorId.set(fallback.id);
         }
       },
@@ -400,7 +324,7 @@ export class ScheduleComponent implements OnInit {
     this.initialSlot.set(null);
   }
 
-  jumpToSlot(slot: { date: Date; time: string }): void {
+  jumpToSlot(slot: NextSlot): void {
     this.scheduleService.selectedDate.set(
       new Date(slot.date.getFullYear(), slot.date.getMonth(), slot.date.getDate(), 12, 0, 0)
     );
@@ -424,7 +348,6 @@ export class ScheduleComponent implements OnInit {
     });
   }
 
-  /** Drag or edit requests a time change → confirm before applying. */
   onRescheduleRequest(event: { id: number; start: string }): void {
     const end = addMinutesToLabel(event.start, 30);
     this.askConfirm('Move appointment', `Move this appointment to ${event.start} – ${end}?`, 'Move', () =>

@@ -16,10 +16,13 @@ import { DoctorOption, SpecialtyGroup } from '../../models/doctor.model';
   template: `
     @if (selected(); as doc) {
       <div class="sch-ds-selected">
-        <span class="sch-ds-selected-name">
-          {{ doc.name }}
-          @if (doc.specialty) { <span class="sch-ds-selected-specialty">· {{ doc.specialty }}</span> }
-        </span>
+        <div class="sch-ds-avatar">{{ initials(doc) }}</div>
+        <div class="sch-ds-selected-info">
+          <span class="sch-ds-selected-name">{{ doc.name }}</span>
+          @if (doc.specialty) {
+            <span class="sch-ds-selected-specialty">{{ doc.specialty }}</span>
+          }
+        </div>
         <button class="sch-ds-selected-change" (click)="cleared.emit()">Change</button>
       </div>
     } @else {
@@ -42,8 +45,11 @@ import { DoctorOption, SpecialtyGroup } from '../../models/doctor.model';
               <div class="sch-ds-group-label">{{ group.specialty }}</div>
               @for (d of group.doctors; track d.id) {
                 <button class="sch-ds-result" (click)="pick(d)">
-                  <strong>{{ d.name }}</strong>
-                  <span class="sch-ds-result-id">(ID: {{ d.id }})</span>
+                  <div class="sch-ds-result-avatar">{{ initials(d) }}</div>
+                  <div class="sch-ds-result-body">
+                    <strong>{{ d.name }}</strong>
+                    <span class="sch-ds-result-id">ID {{ d.id }}</span>
+                  </div>
                 </button>
               }
             }
@@ -86,6 +92,13 @@ export class DoctorSearchComponent {
     }
     return [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([specialty, doctors]) => ({ specialty, doctors }));
   });
+
+  initials(doc: DoctorOption): string {
+    const parts = doc.name.split(' ').filter(Boolean);
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
 
   toggleSpecialty(specialty: string): void {
     this.specialtyFilter.set(this.specialtyFilter() === specialty ? null : specialty);
